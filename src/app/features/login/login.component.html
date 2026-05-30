@@ -1,0 +1,13 @@
+<main class="ph-login-page">
+  <section class="ph-login-panel" aria-labelledby="login-title">
+    <p class="ph-kicker">PegelHub</p>
+    <h1 id="login-title" class="ph-login-title">Sign in</h1>
+    <p class="ph-login-copy">Use your PegelHub account to open the protected Core overview.</p>
+
+    @if (errorMessage(); as error) {
+      <ph-message severity="error" [text]="error" />
+    }
+
+    <ph-button label="Sign in" icon="pi pi-sign-in" [loading]="signingIn()" (clicked)="signIn()" />
+  </section>
+</main>

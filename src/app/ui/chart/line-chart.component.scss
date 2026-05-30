@@ -1,0 +1,12 @@
+.ph-chart-empty {
+  display: flex;
+  min-height: 16rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--p-surface-200);
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-0);
+  color: var(--p-surface-500);
+  padding: 1.5rem;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,33 @@
+<section class="ph-page">
+  <header class="ph-page-header">
+    <div>
+      <p class="ph-kicker">Core API proof</p>
+      <h1 class="ph-title">Supplier overview</h1>
+    </div>
+    <ph-button
+      label="Refresh"
+      icon="pi pi-refresh"
+      variant="secondary"
+      [loading]="suppliers.isLoading()"
+      (clicked)="suppliers.reload()"
+    />
+  </header>
+
+  @if (suppliers.isLoading() && rows().length === 0) {
+    <ph-loading label="Loading suppliers from Core" />
+  } @else {
+    @if (errorMessage(); as error) {
+      <ph-message severity="error" [text]="error" />
+    }
+
+    <ph-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="suppliers.isLoading()"
+      actionLabel="Inspect"
+      actionIcon="pi pi-chart-line"
+      emptyMessage="Core returned no suppliers for this user."
+      (rowAction)="openSupplier($event)"
+    />
+  }
+</section>

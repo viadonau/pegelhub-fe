@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="River gauge at dusk">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f2438" />
+      <stop offset="0.52" stop-color="#1d6f76" />
+      <stop offset="1" stop-color="#e0a33d" />
+    </linearGradient>
+    <linearGradient id="water" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#2b8792" />
+      <stop offset="1" stop-color="#0e3e55" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="900" fill="url(#sky)" />
+  <path d="M0 520 C180 470 280 590 430 540 C600 480 780 500 930 555 C1110 620 1240 520 1400 560 L1400 900 L0 900 Z" fill="url(#water)" />
+  <path d="M0 620 C210 590 320 680 520 640 C710 600 910 620 1080 680 C1220 730 1320 650 1400 690" fill="none" stroke="#9ee6df" stroke-opacity="0.42" stroke-width="8" />
+  <path d="M0 710 C220 690 370 760 590 720 C790 685 985 720 1170 780 C1280 815 1360 760 1400 780" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="7" />
+  <g transform="translate(980 275)">
+    <rect x="85" y="55" width="38" height="430" rx="4" fill="#f8fafc" opacity="0.92" />
+    <rect x="94" y="86" width="20" height="350" fill="#0f172a" opacity="0.72" />
+    <g fill="#f8fafc">
+      <rect x="66" y="88" width="64" height="5" />
+      <rect x="76" y="138" width="54" height="5" />
+      <rect x="66" y="188" width="64" height="5" />
+      <rect x="76" y="238" width="54" height="5" />
+      <rect x="66" y="288" width="64" height="5" />
+      <rect x="76" y="338" width="54" height="5" />
+      <rect x="66" y="388" width="64" height="5" />
+    </g>
+    <rect x="0" y="0" width="210" height="70" rx="8" fill="#f8fafc" opacity="0.95" />
+    <circle cx="36" cy="35" r="15" fill="#0f766e" />
+    <rect x="66" y="24" width="104" height="8" rx="4" fill="#0f172a" opacity="0.68" />
+    <rect x="66" y="42" width="78" height="7" rx="3.5" fill="#0f172a" opacity="0.38" />
+  </g>
+</svg>

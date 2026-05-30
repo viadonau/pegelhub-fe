@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+cat > /usr/share/nginx/html/assets/config.json <<EOF
+{
+  "apiBaseUrl": "${PH_API_BASE_URL}",
+  "keycloak": {
+    "url": "${PH_KEYCLOAK_URL}",
+    "realm": "${PH_KEYCLOAK_REALM}",
+    "clientId": "${PH_KEYCLOAK_CLIENT_ID}",
+    "apiClientId": "${PH_KEYCLOAK_API_CLIENT_ID}"
+  }
+}
+EOF
+
+cat > /etc/nginx/conf.d/default.conf <<EOF
+server {
+  listen 80;
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location /api/ {
+    proxy_pass ${NGINX_API_UPSTREAM}/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location / {
+    try_files \$uri \$uri/ /index.html;
+  }
+}
+EOF

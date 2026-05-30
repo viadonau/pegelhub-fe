@@ -1,0 +1,12 @@
+.ph-loading {
+  display: flex;
+  min-height: 7rem;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--p-surface-600);
+}
+
+.ph-loading-spinner {
+  width: 2rem;
+  height: 2rem;
+}

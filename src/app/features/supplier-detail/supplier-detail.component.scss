@@ -1,0 +1,39 @@
+.ph-field {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--p-surface-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ph-select {
+  height: 2.5rem;
+  min-width: 10rem;
+  border: 1px solid var(--p-surface-300);
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-surface-0);
+  color: var(--p-surface-900);
+  padding-inline: 0.75rem;
+  font: inherit;
+  font-weight: 400;
+  outline: none;
+  box-shadow: var(--p-shadow-sm);
+}
+
+.ph-select:focus {
+  border-color: var(--p-primary-color);
+}
+
+.ph-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-primary-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ph-back-link:hover {
+  text-decoration: underline;
+}

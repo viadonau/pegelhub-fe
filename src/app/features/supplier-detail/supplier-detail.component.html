@@ -1,0 +1,91 @@
+<section class="ph-page">
+  <header class="ph-page-header">
+    <div class="ph-page-heading">
+      <a routerLink="/overview" class="ph-back-link">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        Supplier overview
+      </a>
+      <div>
+        <p class="ph-kicker">Measurement detail</p>
+        <h1 class="ph-title">
+          {{ supplier()?.stationName ?? stationNumber() }}
+        </h1>
+        <p class="ph-muted">
+          {{ supplier()?.stationWater ?? 'Unknown water body' }} &middot; {{ stationNumber() }}
+        </p>
+      </div>
+    </div>
+
+    <div class="ph-actions">
+      <label class="ph-field">
+        Range
+        <select
+          class="ph-select"
+          [ngModel]="selectedRange()"
+          (ngModelChange)="setRange($event)"
+        >
+          @for (range of ranges; track range.value) {
+            <option [value]="range.value">{{ range.label }}</option>
+          }
+        </select>
+      </label>
+
+      <ph-button
+        label="Refresh"
+        icon="pi pi-refresh"
+        variant="secondary"
+        [loading]="measurements.isLoading() || suppliers.isLoading()"
+        (clicked)="reload()"
+      />
+    </div>
+  </header>
+
+  @if ((measurements.isLoading() || suppliers.isLoading()) && rows().length === 0) {
+    <ph-loading label="Loading measurements from Core" />
+  } @else {
+    @if (errorMessage(); as error) {
+      <ph-message severity="error" [text]="error" />
+    }
+
+    <section class="ph-page-section">
+      <div class="ph-section-header">
+        <div>
+          <h2 class="ph-section-title">Measurement trend</h2>
+          <p class="ph-muted">{{ rows().length }} field values in the selected range</p>
+        </div>
+
+        @if (fieldNames().length > 0) {
+          <label class="ph-field">
+            Field
+            <select
+              class="ph-select"
+              [ngModel]="activeFieldValue()"
+              (ngModelChange)="setField($event)"
+            >
+              @for (field of fieldNames(); track field) {
+                <option [value]="field">{{ field }}</option>
+              }
+            </select>
+          </label>
+        }
+      </div>
+
+      <ph-line-chart
+        [series]="chartSeries()"
+        [yLabel]="chartYLabel()"
+        emptyMessage="Core returned no numeric measurement fields for the selected range."
+        ariaLabel="Supplier measurement trend"
+      />
+    </section>
+
+    <section class="ph-page-section">
+      <h2 class="ph-section-title">Measurements</h2>
+      <ph-table
+        [columns]="columns"
+        [rows]="rows()"
+        [loading]="measurements.isLoading()"
+        emptyMessage="Core returned no measurements for this supplier in the selected range."
+      />
+    </section>
+  }
+</section>
