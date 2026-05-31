@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { SupplierApiService } from '../../core/api/supplier-api.service';
@@ -26,6 +26,7 @@ export class OverviewComponent {
 
   protected readonly suppliers = this.data.suppliersResource();
   protected readonly columns = STATION_COLUMNS;
+  protected readonly stationFilter = signal('');
   protected readonly rows = computed<SupplierOverviewRow[]>(() =>
     this.suppliers.value().map((supplier) => ({
       id: supplier.id,
@@ -34,7 +35,21 @@ export class OverviewComponent {
       stationWater: supplier.stationWater
     }))
   );
+  protected readonly filteredRows = computed(() => {
+    const query = normalizeStationValue(this.stationFilter());
+
+    if (!query) {
+      return this.rows();
+    }
+
+    return this.rows().filter((row) =>
+      [row.stationName, row.stationWater, row.stationNumber].some((value) =>
+        normalizeStationValue(value).includes(query)
+      )
+    );
+  });
   protected readonly stationCount = computed(() => this.rows().length);
+  protected readonly filteredStationCount = computed(() => this.filteredRows().length);
   protected readonly stationCountLabel = computed(() => {
     const count = this.stationCount();
 
@@ -47,6 +62,18 @@ export class OverviewComponent {
 
     return this.errorMessage() ? 'Needs attention' : 'Ready';
   });
+  protected readonly filterSummary = computed(() => {
+    if (this.stationFilter().trim()) {
+      return `${this.filteredStationCount()} of ${this.stationCountLabel()} shown`;
+    }
+
+    return 'Station metadata from the Core API, sorted by the service response.';
+  });
+  protected readonly emptyMessage = computed(() =>
+    this.stationFilter().trim()
+      ? 'No stations match the current filter.'
+      : 'No stations to show. Your account might not have access to any yet.'
+  );
   protected readonly errorMessage = computed(() => {
     if (this.suppliers.status() !== 'error') {
       return null;
@@ -70,10 +97,22 @@ export class OverviewComponent {
 
     void this.router.navigate(['/overview', stationNumber]);
   }
+
+  protected updateStationFilter(event: Event): void {
+    this.stationFilter.set((event.target as HTMLInputElement).value);
+  }
+
+  protected clearStationFilter(): void {
+    this.stationFilter.set('');
+  }
 }
 
 function extractStatus(error: Error | undefined): number | undefined {
   const status = (error as unknown as { status?: unknown } | undefined)?.status;
 
   return typeof status === 'number' ? status : undefined;
+}
+
+function normalizeStationValue(value: string): string {
+  return value.trim().toLocaleLowerCase();
 }

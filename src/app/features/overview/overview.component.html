@@ -37,18 +37,35 @@
       <div class="ph-section-header">
         <div class="ph-section-heading">
           <h2 id="stations-table-title" class="ph-section-title">Supplier stations</h2>
-          <p class="ph-muted">Station metadata from the Core API, sorted by the service response.</p>
+          <p class="ph-muted">{{ filterSummary() }}</p>
+        </div>
+
+        <div class="ph-station-filter">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input
+            type="search"
+            aria-label="Filter stations"
+            autocomplete="off"
+            placeholder="Filter stations"
+            [value]="stationFilter()"
+            (input)="updateStationFilter($event)"
+          />
+          @if (stationFilter()) {
+            <button type="button" aria-label="Clear station filter" (click)="clearStationFilter()">
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          }
         </div>
       </div>
 
       <ph-table
         [columns]="columns"
-        [rows]="rows()"
+        [rows]="filteredRows()"
         [loading]="suppliers.isLoading()"
         [clickable]="true"
         minWidth="100%"
         actionLabel="Open station"
-        emptyMessage="No stations to show. Your account might not have access to any yet."
+        [emptyMessage]="emptyMessage()"
         (rowAction)="openSupplier($event)"
       />
     </section>
