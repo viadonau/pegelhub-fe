@@ -53,6 +53,8 @@
               }
             ],
             "styles": [
+              "@fontsource-variable/source-sans-3/index.css",
+              "@fontsource-variable/source-serif-4/index.css",
               "src/styles.scss"
             ]
           },

@@ -1,7 +1,6 @@
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 import {
   createInterceptorCondition,
@@ -13,6 +12,7 @@ import {
 
 import { routes } from './app.routes';
 import { RUNTIME_CONFIG, RuntimeConfig } from './core/config/runtime-config';
+import { ViadonauPreset } from './core/theme/viadonau.preset';
 
 export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig {
   return {
@@ -23,7 +23,7 @@ export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig
       provideHttpClient(withFetch(), withInterceptors([includeBearerTokenInterceptor])),
       providePrimeNG({
         theme: {
-          preset: Aura,
+          preset: ViadonauPreset,
           options: {
             darkModeSelector: '.ph-dark'
           }
