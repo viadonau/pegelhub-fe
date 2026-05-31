@@ -1,11 +1,19 @@
 <section class="ph-page">
   <header class="ph-page-header">
-    <div>
-      <p class="ph-kicker">Core API proof</p>
-      <h1 class="ph-title">Supplier overview</h1>
+    <div class="ph-page-heading">
+      <h1 class="ph-title">Stations</h1>
+      <p class="ph-muted">
+        @if (suppliers.isLoading() && stationCount() === 0) {
+          Loading stations…
+        } @else if (stationCount() === 1) {
+          1 station
+        } @else {
+          {{ stationCount() }} stations
+        }
+      </p>
     </div>
     <ph-button
-      label="Refresh"
+      label="Refresh stations"
       icon="pi pi-refresh"
       variant="secondary"
       [loading]="suppliers.isLoading()"
@@ -13,8 +21,8 @@
     />
   </header>
 
-  @if (suppliers.isLoading() && rows().length === 0) {
-    <ph-loading label="Loading suppliers from Core" />
+  @if (suppliers.isLoading() && stationCount() === 0) {
+    <ph-loading label="Loading stations" />
   } @else {
     @if (errorMessage(); as error) {
       <ph-message severity="error" [text]="error" />
@@ -24,9 +32,10 @@
       [columns]="columns"
       [rows]="rows()"
       [loading]="suppliers.isLoading()"
-      actionLabel="Inspect"
-      actionIcon="pi pi-chart-line"
-      emptyMessage="Core returned no suppliers for this user."
+      [clickable]="true"
+      minWidth="40rem"
+      actionLabel="Open station"
+      emptyMessage="No stations to show. Your account might not have access to any yet."
       (rowAction)="openSupplier($event)"
     />
   }

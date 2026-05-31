@@ -5,5 +5,4 @@ export interface SupplierOverviewRow {
   stationNumber: string;
   stationName: string;
   stationWater: string;
-  lastValue: string;
 }

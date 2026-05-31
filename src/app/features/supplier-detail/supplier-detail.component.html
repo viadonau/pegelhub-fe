@@ -3,16 +3,34 @@
     <div class="ph-page-heading">
       <a routerLink="/overview" class="ph-back-link">
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
-        Supplier overview
+        Stations
       </a>
       <div>
-        <p class="ph-kicker">Measurement detail</p>
         <h1 class="ph-title">
           {{ supplier()?.stationName ?? stationNumber() }}
         </h1>
-        <p class="ph-muted">
-          {{ supplier()?.stationWater ?? 'Unknown water body' }} &middot; {{ stationNumber() }}
-        </p>
+        <dl class="ph-station-meta">
+          <div class="ph-station-meta-item">
+            <dt>Water</dt>
+            <dd>{{ supplier()?.stationWater ?? 'Unknown' }}</dd>
+          </div>
+          <div class="ph-station-meta-item">
+            <dt>Station number</dt>
+            <dd>{{ stationNumber() }}</dd>
+          </div>
+          @if (activeUnit(); as unit) {
+            <div class="ph-station-meta-item">
+              <dt>Unit</dt>
+              <dd>{{ unit }}</dd>
+            </div>
+          }
+          @if (stationLocation(); as location) {
+            <div class="ph-station-meta-item">
+              <dt>Location ID</dt>
+              <dd>{{ location }}</dd>
+            </div>
+          }
+        </dl>
       </div>
     </div>
 
@@ -30,8 +48,23 @@
         </select>
       </label>
 
+      @if (fieldNames().length > 0) {
+        <label class="ph-field">
+          Parameter
+          <select
+            class="ph-select"
+            [ngModel]="activeFieldValue()"
+            (ngModelChange)="setField($event)"
+          >
+            @for (field of fieldNames(); track field) {
+              <option [value]="field">{{ humanizeField(field) }}</option>
+            }
+          </select>
+        </label>
+      }
+
       <ph-button
-        label="Refresh"
+        label="Refresh measurements"
         icon="pi pi-refresh"
         variant="secondary"
         [loading]="measurements.isLoading() || suppliers.isLoading()"
@@ -41,7 +74,7 @@
   </header>
 
   @if ((measurements.isLoading() || suppliers.isLoading()) && rows().length === 0) {
-    <ph-loading label="Loading measurements from Core" />
+    <ph-loading label="Loading measurements" />
   } @else {
     @if (errorMessage(); as error) {
       <ph-message severity="error" [text]="error" />
@@ -51,40 +84,28 @@
       <div class="ph-section-header">
         <div>
           <h2 class="ph-section-title">Measurement trend</h2>
-          <p class="ph-muted">{{ rows().length }} field values in the selected range</p>
+          <p class="ph-muted">{{ rows().length }} readings &middot; last {{ selectedRangeLabel() }}</p>
         </div>
-
-        @if (fieldNames().length > 0) {
-          <label class="ph-field">
-            Field
-            <select
-              class="ph-select"
-              [ngModel]="activeFieldValue()"
-              (ngModelChange)="setField($event)"
-            >
-              @for (field of fieldNames(); track field) {
-                <option [value]="field">{{ field }}</option>
-              }
-            </select>
-          </label>
-        }
       </div>
 
       <ph-line-chart
         [series]="chartSeries()"
         [yLabel]="chartYLabel()"
-        emptyMessage="Core returned no numeric measurement fields for the selected range."
-        ariaLabel="Supplier measurement trend"
+        [unit]="activeUnit()"
+        emptyMessage="No numeric readings to chart for this range yet."
+        ariaLabel="Station measurement trend"
       />
     </section>
 
     <section class="ph-page-section">
-      <h2 class="ph-section-title">Measurements</h2>
+      <h2 class="ph-section-title">Latest readings</h2>
       <ph-table
         [columns]="columns"
         [rows]="rows()"
         [loading]="measurements.isLoading()"
-        emptyMessage="Core returned no measurements for this supplier in the selected range."
+        [paginator]="true"
+        [pageSize]="20"
+        emptyMessage="No measurements available for this range yet."
       />
     </section>
   }

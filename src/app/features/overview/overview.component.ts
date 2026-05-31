@@ -8,12 +8,10 @@ import { PhMessageComponent } from '../../ui/message/message.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
 import { SupplierOverviewRow } from './supplier.dto';
 
-const SUPPLIER_COLUMNS: PhTableColumn[] = [
+const STATION_COLUMNS: PhTableColumn[] = [
   { field: 'stationName', header: 'Station' },
   { field: 'stationWater', header: 'Water' },
-  { field: 'lastValue', header: 'Last value' },
-  { field: 'stationNumber', header: 'Station number' },
-  { field: 'id', header: 'ID' }
+  { field: 'stationNumber', header: 'Station number' }
 ];
 
 @Component({
@@ -26,16 +24,16 @@ export class OverviewComponent {
   private readonly router = inject(Router);
 
   protected readonly suppliers = this.data.suppliersResource();
-  protected readonly columns = SUPPLIER_COLUMNS;
+  protected readonly columns = STATION_COLUMNS;
   protected readonly rows = computed<SupplierOverviewRow[]>(() =>
     this.suppliers.value().map((supplier) => ({
       id: supplier.id,
       stationNumber: supplier.stationNumber,
       stationName: supplier.stationName,
-      stationWater: supplier.stationWater,
-      lastValue: 'No value yet'
+      stationWater: supplier.stationWater
     }))
   );
+  protected readonly stationCount = computed(() => this.rows().length);
   protected readonly errorMessage = computed(() => {
     if (this.suppliers.status() !== 'error') {
       return null;
@@ -44,14 +42,14 @@ export class OverviewComponent {
     const status = this.suppliers.statusCode() ?? extractStatus(this.suppliers.error());
 
     if (status === 401) {
-      return 'Core rejected the request as unauthenticated. The bearer token was missing, expired, or invalid.';
+      return 'Your session has expired. Please sign in again to continue.';
     }
 
     if (status === 403) {
-      return 'Core rejected the request as forbidden. The user likely needs metadata:read for pegelhub-core-api.';
+      return "You don't have access to station data. Ask an administrator to grant the metadata:read role.";
     }
 
-    return 'The supplier request failed. Check Core availability and the runtime API base URL.';
+    return "We couldn't load the stations right now. Try again, or check that the data service is reachable.";
   });
 
   protected openSupplier(row: object): void {

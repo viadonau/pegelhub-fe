@@ -1,4 +1,72 @@
 .ph-table-action-column {
   width: 1%;
   white-space: nowrap;
+  text-align: right;
+}
+
+.ph-cell-end {
+  text-align: end;
+}
+
+.ph-row-chevron {
+  display: inline-block;
+  color: var(--p-surface-400);
+  font-size: 0.875rem;
+  transition: transform 120ms ease-out, color 120ms ease-out;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.ph-row-clickable:hover .ph-row-chevron {
+  color: var(--p-primary-color);
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-row-chevron {
+    transition: none;
+  }
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+  transition: background-color 120ms ease-out;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.ph-row-clickable {
+  cursor: pointer;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.ph-row-clickable:hover {
+  background: var(--p-primary-50);
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.ph-row-clickable:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: -2px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-table-empty {
+  text-align: center;
+  color: var(--p-surface-500);
+  padding-block: 2rem;
+}
+
+.ph-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep .p-datatable .p-datatable-tbody > tr {
+    transition: none;
+  }
 }

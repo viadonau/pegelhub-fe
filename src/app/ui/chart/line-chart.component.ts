@@ -20,8 +20,9 @@ export interface PhChartSeries {
   },
   template: `
     @if (series().length === 0 || maxPointCount() === 0) {
-      <div class="ph-chart-empty">
-        {{ emptyMessage() }}
+      <div class="ph-chart-empty" role="status">
+        <i class="pi pi-chart-line" aria-hidden="true"></i>
+        <p>{{ emptyMessage() }}</p>
       </div>
     } @else {
       <p-chart
@@ -38,6 +39,7 @@ export interface PhChartSeries {
 export class PhLineChartComponent {
   readonly series = input<PhChartSeries[]>([]);
   readonly yLabel = input<string>();
+  readonly unit = input<string | null>();
   readonly emptyMessage = input('No chart data available.');
   readonly ariaLabel = input('Line chart');
 
@@ -56,8 +58,9 @@ export class PhLineChartComponent {
         borderColor: chartColors[index % chartColors.length],
         backgroundColor: chartColors[index % chartColors.length],
         borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 4,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHitRadius: 12,
         tension: 0.25
       }))
     };
@@ -71,7 +74,14 @@ export class PhLineChartComponent {
       },
       tooltip: {
         mode: 'index',
-        intersect: false
+        intersect: false,
+        callbacks: {
+          label: (ctx) => {
+            const base = ctx.dataset.label ? `${ctx.dataset.label}: ` : '';
+            const unit = this.unit();
+            return base + ctx.parsed.y + (unit ? ` ${unit}` : '');
+          }
+        }
       }
     },
     interaction: {
@@ -82,16 +92,32 @@ export class PhLineChartComponent {
       x: {
         ticks: {
           maxRotation: 0,
-          autoSkip: true
+          autoSkip: true,
+          maxTicksLimit: 8,
+          autoSkipPadding: 24,
+          padding: 4,
+          color: '#475569',
+          font: { size: 11 }
         },
         grid: {
           display: false
         }
       },
       y: {
+        beginAtZero: false,
         title: {
           display: Boolean(this.yLabel()),
-          text: this.yLabel()
+          text: this.yLabel(),
+          color: '#475569',
+          font: { size: 12, weight: 500 }
+        },
+        ticks: {
+          color: '#475569',
+          font: { size: 11 },
+          precision: 0
+        },
+        grid: {
+          color: '#e5e7eb'
         }
       }
     }
@@ -105,4 +131,4 @@ export class PhLineChartComponent {
   }
 }
 
-const chartColors = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const chartColors = ['#003c50', '#4691af', '#00a0e1', '#b46615', '#7a3978'];
