@@ -1,5 +1,6 @@
 .ph-field {
   display: grid;
+  min-width: 0;
   gap: 0.25rem;
   color: var(--p-surface-700);
   font-size: 0.875rem;
@@ -9,6 +10,7 @@
 .ph-select {
   height: 2.5rem;
   min-width: 10rem;
+  max-width: 100%;
   border: 1px solid var(--p-surface-300);
   border-radius: var(--p-border-radius-md);
   background: var(--p-surface-0);
@@ -17,8 +19,7 @@
   font: inherit;
   font-weight: 400;
   outline: none;
-  box-shadow: var(--p-shadow-sm);
-  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  transition: border-color 150ms ease-out, outline-color 150ms ease-out;
 }
 
 .ph-select:hover {
@@ -27,7 +28,8 @@
 
 .ph-select:focus-visible {
   border-color: var(--p-primary-color);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--p-primary-color) 25%, transparent);
+  outline: 2px solid color-mix(in oklch, var(--p-primary-color), transparent 76%);
+  outline-offset: 2px;
 }
 
 .ph-back-link {
@@ -56,12 +58,13 @@
 .ph-station-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem 2.5rem;
+  gap: 1.5rem 2rem;
   margin: 0.75rem 0 0;
   padding: 0;
 }
 
 .ph-station-meta-item {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
@@ -81,9 +84,28 @@
   font-weight: 500;
   color: var(--p-surface-900);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+}
+
+.ph-station-meta-item-strong dd {
+  color: var(--p-primary-color);
+  font-weight: 700;
 }
 
 .ph-section-sub {
   margin-top: -0.25rem;
   margin-bottom: 0.75rem;
+}
+
+@media (width < 40rem) {
+  .ph-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .ph-select {
+    width: 100%;
+  }
 }

@@ -24,6 +24,16 @@
               <dd>{{ unit }}</dd>
             </div>
           }
+          @if (latestReading(); as reading) {
+            <div class="ph-station-meta-item ph-station-meta-item-strong">
+              <dt>Latest reading</dt>
+              <dd>{{ reading.value }}</dd>
+            </div>
+            <div class="ph-station-meta-item">
+              <dt>Last update</dt>
+              <dd>{{ reading.timestamp }}</dd>
+            </div>
+          }
           @if (stationLocation(); as location) {
             <div class="ph-station-meta-item">
               <dt>Location ID</dt>
@@ -64,7 +74,7 @@
       }
 
       <ph-button
-        label="Refresh measurements"
+        label="Refresh data"
         icon="pi pi-refresh"
         variant="secondary"
         [loading]="measurements.isLoading() || suppliers.isLoading()"

@@ -49,6 +49,15 @@ body {
   gap: 1rem;
 }
 
+.ph-page-header,
+.ph-page-heading,
+.ph-page-section,
+.ph-section-header,
+.ph-actions {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .ph-page-heading {
   display: grid;
   gap: 0.5rem;

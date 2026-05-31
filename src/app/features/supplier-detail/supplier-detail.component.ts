@@ -18,6 +18,11 @@ interface MeasurementTableRow {
   value: string;
 }
 
+interface LatestReading {
+  timestamp: string;
+  value: string;
+}
+
 const MEASUREMENT_COLUMNS: PhTableColumn[] = [
   { field: 'timestamp', header: 'Timestamp' },
   { field: 'value', header: 'Reading', align: 'end' }
@@ -165,6 +170,28 @@ export class SupplierDetailComponent {
         timestamp: formatTimestamp(measurement.timestamp, dateTimeFormatter),
         value: formatValueWithUnit(measurement.fields[field], unit)
       }));
+  });
+  protected readonly latestReading = computed<LatestReading | null>(() => {
+    const field = this.activeField();
+    const unit = this.activeUnit();
+
+    if (!field) {
+      return null;
+    }
+
+    const measurement = this.sortedMeasurements()
+      .slice()
+      .reverse()
+      .find((measurement) => typeof measurement.fields?.[field] === 'number');
+
+    if (!measurement) {
+      return null;
+    }
+
+    return {
+      timestamp: formatTimestamp(measurement.timestamp, compactTimeFormatter),
+      value: formatValueWithUnit(measurement.fields[field], unit)
+    };
   });
 
   protected readonly errorMessage = computed(() => {
