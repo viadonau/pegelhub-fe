@@ -1,8 +1,23 @@
 <main class="ph-login-page">
   <section class="ph-login-panel" aria-labelledby="login-title">
-    <p class="ph-kicker">PegelHub</p>
-    <h1 id="login-title" class="ph-login-title">Sign in</h1>
-    <p class="ph-login-copy">Use your PegelHub account to open the protected Core overview.</p>
+    <div class="ph-login-brand">
+      <img
+        src="brand/pegelhub-logo.png"
+        alt=""
+        class="ph-login-logo"
+        width="96"
+        height="72"
+      />
+      <span class="ph-login-wordmark">
+        <span class="ph-login-name">PegelHub</span>
+        <span class="ph-login-org">viadonau</span>
+      </span>
+    </div>
+
+    <div class="ph-login-heading">
+      <h1 id="login-title" class="ph-login-title">Sign in</h1>
+      <p class="ph-login-copy">Use your viadonau account to continue.</p>
+    </div>
 
     @if (errorMessage(); as error) {
       <ph-message severity="error" [text]="error" />

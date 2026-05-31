@@ -32,7 +32,7 @@ export class LoginComponent {
 
     void this.auth.login(this.returnUrl()).catch(() => {
       this.signingIn.set(false);
-      this.loginError.set('Keycloak sign-in could not be started. Check the runtime config and Keycloak client setup.');
+      this.loginError.set("We couldn't start the sign-in flow. Try again, or contact your administrator if the problem persists.");
     });
   }
 

@@ -1,18 +1,25 @@
 @if (showShell()) {
   <div class="ph-app-shell">
+    <a class="ph-skip-link" href="#ph-main-content">Skip to main content</a>
     <ph-toolbar>
-      <div ph-toolbar-start class="ph-brand">
-        <span class="ph-brand-mark">PH</span>
-        <span>PegelHub</span>
-      </div>
+      <a ph-toolbar-start class="ph-brand" routerLink="/" aria-label="PegelHub home">
+        <img src="brand/pegelhub-logo.png" alt="" class="ph-brand-logo" width="64" height="48" />
+        <span class="ph-brand-wordmark">
+          <span class="ph-brand-name">PegelHub</span>
+          <span class="ph-brand-org">viadonau</span>
+        </span>
+      </a>
 
       <div ph-toolbar-end class="ph-toolbar-actions">
-        <span>{{ auth.userName() }}</span>
-        <ph-button label="Logout" icon="pi pi-sign-out" variant="secondary" (clicked)="logout()" />
+        <span class="ph-user">
+          <i class="pi pi-user" aria-hidden="true"></i>
+          <span class="ph-user-name">{{ auth.userName() }}</span>
+        </span>
+        <ph-button label="Sign out" icon="pi pi-sign-out" variant="secondary" (clicked)="logout()" />
       </div>
     </ph-toolbar>
 
-    <main class="ph-shell-main">
+    <main id="ph-main-content" class="ph-shell-main" tabindex="-1">
       <router-outlet />
     </main>
   </div>

@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 
 import { AuthStateService } from './core/auth/auth-state.service';
@@ -9,7 +9,7 @@ import { PhToolbarComponent } from './ui/toolbar/toolbar.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, PhButtonComponent, PhToolbarComponent],
+  imports: [RouterLink, RouterOutlet, PhButtonComponent, PhToolbarComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

@@ -7,30 +7,86 @@
   background: var(--p-surface-50);
 }
 
+.ph-skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: var(--p-border-radius-md);
+  background: var(--p-primary-color);
+  color: var(--p-primary-contrast-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform 150ms ease-out;
+}
+
+.ph-skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 2px solid var(--p-primary-contrast-color);
+  outline-offset: 2px;
+}
+
+:host ::ng-deep .p-toolbar {
+  border: 0;
+  border-bottom: 1px solid var(--p-surface-200);
+  border-radius: 0;
+  background: var(--p-surface-0);
+}
+
 .ph-shell-main {
   width: min(100%, var(--ph-content-max-width));
   margin-inline: auto;
   padding: 2rem;
 }
 
-.ph-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: var(--p-surface-900);
-  font-weight: 700;
+.ph-shell-main:focus {
+  outline: none;
 }
 
-.ph-brand-mark {
+.ph-brand {
   display: inline-flex;
-  width: 2rem;
-  height: 2rem;
   align-items: center;
-  justify-content: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
   border-radius: var(--p-border-radius-md);
-  background: var(--p-primary-color);
-  color: var(--p-primary-contrast-color);
-  font-size: 0.75rem;
+}
+
+.ph-brand:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 4px;
+}
+
+.ph-brand-logo {
+  display: block;
+  height: 2.75rem;
+  width: auto;
+  user-select: none;
+}
+
+.ph-brand-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.ph-brand-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--p-surface-900);
+}
+
+.ph-brand-org {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--p-surface-500);
 }
 
 .ph-toolbar-actions {
@@ -39,11 +95,40 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
-  color: var(--p-surface-600);
+  color: var(--p-surface-700);
+}
+
+.ph-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--p-surface-700);
+}
+
+.ph-user .pi {
+  font-size: 0.875rem;
+  color: var(--p-surface-500);
+}
+
+.ph-user-name {
+  font-weight: 500;
 }
 
 @media (width < 40rem) {
   .ph-shell-main {
     padding: 1.25rem;
+  }
+
+  .ph-brand-logo {
+    height: 2rem;
+  }
+
+  .ph-brand-wordmark {
+    display: none;
+  }
+
+  .ph-user {
+    display: none;
   }
 }

@@ -7,7 +7,8 @@ import { OverviewComponent } from './features/overview/overview.component';
 export const routes: Routes = [
   {
     path: 'login',
-    component: LoginComponent
+    component: LoginComponent,
+    title: 'Sign in · PegelHub'
   },
   {
     path: '',
@@ -17,11 +18,13 @@ export const routes: Routes = [
   {
     path: 'overview',
     component: OverviewComponent,
-    canActivate: [canActivateAuthenticated]
+    canActivate: [canActivateAuthenticated],
+    title: 'Stations · PegelHub'
   },
   {
     path: 'overview/:stationNumber',
     canActivate: [canActivateAuthenticated],
+    title: 'Station · PegelHub',
     loadComponent: () =>
       import('./features/supplier-detail/supplier-detail.component').then((module) => module.SupplierDetailComponent)
   },
