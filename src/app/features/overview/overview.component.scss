@@ -1,0 +1,56 @@
+.ph-overview-page {
+  gap: 1.75rem;
+}
+
+.ph-overview-page .ph-page-heading {
+  max-width: 46rem;
+}
+
+.ph-overview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+
+.ph-overview-meta div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  min-height: 1.5rem;
+}
+
+.ph-overview-meta dt,
+.ph-overview-meta dd {
+  margin: 0;
+}
+
+.ph-overview-meta dt {
+  color: var(--p-surface-600);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.ph-overview-meta dd {
+  color: var(--p-surface-900);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-section-heading {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ph-overview-table-section {
+  gap: 0.875rem;
+}
+
+@media (width < 40rem) {
+  .ph-overview-meta {
+    display: grid;
+    gap: 0.375rem;
+  }
+}

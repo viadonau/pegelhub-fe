@@ -17,7 +17,8 @@ const STATION_COLUMNS: PhTableColumn[] = [
 @Component({
   selector: 'app-overview',
   imports: [PhButtonComponent, PhLoadingComponent, PhMessageComponent, PhTableComponent],
-  templateUrl: './overview.component.html'
+  templateUrl: './overview.component.html',
+  styleUrl: './overview.component.scss'
 })
 export class OverviewComponent {
   private readonly data = inject(SupplierApiService);
@@ -34,6 +35,18 @@ export class OverviewComponent {
     }))
   );
   protected readonly stationCount = computed(() => this.rows().length);
+  protected readonly stationCountLabel = computed(() => {
+    const count = this.stationCount();
+
+    return count === 1 ? '1 station' : `${count} stations`;
+  });
+  protected readonly overviewStatusLabel = computed(() => {
+    if (this.suppliers.isLoading()) {
+      return this.stationCount() === 0 ? 'Loading' : 'Refreshing';
+    }
+
+    return this.errorMessage() ? 'Needs attention' : 'Ready';
+  });
   protected readonly errorMessage = computed(() => {
     if (this.suppliers.status() !== 'error') {
       return null;

@@ -1,16 +1,21 @@
-<section class="ph-page">
+<section class="ph-page ph-overview-page">
   <header class="ph-page-header">
     <div class="ph-page-heading">
-      <h1 class="ph-title">Stations</h1>
+      <p class="ph-kicker">Overview</p>
+      <h1 class="ph-title">Station overview</h1>
       <p class="ph-muted">
-        @if (suppliers.isLoading() && stationCount() === 0) {
-          Loading stations…
-        } @else if (stationCount() === 1) {
-          1 station
-        } @else {
-          {{ stationCount() }} stations
-        }
+        Review supplier stations reporting into PegelHub and open a station to inspect its measurement history.
       </p>
+      <dl class="ph-overview-meta" aria-label="Station summary">
+        <div>
+          <dt>Stations</dt>
+          <dd>{{ stationCountLabel() }}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ overviewStatusLabel() }}</dd>
+        </div>
+      </dl>
     </div>
     <ph-button
       label="Refresh stations"
@@ -28,15 +33,24 @@
       <ph-message severity="error" [text]="error" />
     }
 
-    <ph-table
-      [columns]="columns"
-      [rows]="rows()"
-      [loading]="suppliers.isLoading()"
-      [clickable]="true"
-      minWidth="40rem"
-      actionLabel="Open station"
-      emptyMessage="No stations to show. Your account might not have access to any yet."
-      (rowAction)="openSupplier($event)"
-    />
+    <section class="ph-page-section ph-overview-table-section" aria-labelledby="stations-table-title">
+      <div class="ph-section-header">
+        <div class="ph-section-heading">
+          <h2 id="stations-table-title" class="ph-section-title">Supplier stations</h2>
+          <p class="ph-muted">Station metadata from the Core API, sorted by the service response.</p>
+        </div>
+      </div>
+
+      <ph-table
+        [columns]="columns"
+        [rows]="rows()"
+        [loading]="suppliers.isLoading()"
+        [clickable]="true"
+        minWidth="100%"
+        actionLabel="Open station"
+        emptyMessage="No stations to show. Your account might not have access to any yet."
+        (rowAction)="openSupplier($event)"
+      />
+    </section>
   }
 </section>

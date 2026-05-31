@@ -62,31 +62,26 @@
 
 .ph-brand-logo {
   display: block;
-  height: 2.75rem;
+  height: 2.625rem;
   width: auto;
   user-select: none;
 }
 
 .ph-brand-wordmark {
   display: inline-flex;
-  flex-direction: column;
-  line-height: 1.05;
-}
-
-.ph-brand-name {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--p-surface-900);
+  align-items: center;
+  min-height: 2.625rem;
+  padding-inline-start: 0.75rem;
+  border-left: 1px solid var(--p-surface-200);
+  line-height: 1;
 }
 
 .ph-brand-org {
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--p-surface-500);
+  letter-spacing: 0.08em;
+  color: var(--p-surface-600);
 }
 
 .ph-toolbar-actions {
