@@ -1,37 +1,3 @@
-.ph-field {
-  display: grid;
-  min-width: 0;
-  gap: 0.25rem;
-  color: var(--p-surface-700);
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.ph-select {
-  height: 2.5rem;
-  min-width: 10rem;
-  max-width: 100%;
-  border: 1px solid var(--p-surface-300);
-  border-radius: var(--p-border-radius-md);
-  background: var(--p-surface-0);
-  color: var(--p-surface-900);
-  padding-inline: 0.75rem;
-  font: inherit;
-  font-weight: 400;
-  outline: none;
-  transition: border-color 150ms ease-out, outline-color 150ms ease-out;
-}
-
-.ph-select:hover {
-  border-color: var(--p-surface-400);
-}
-
-.ph-select:focus-visible {
-  border-color: var(--p-primary-color);
-  outline: 2px solid color-mix(in oklch, var(--p-primary-color), transparent 76%);
-  outline-offset: 2px;
-}
-
 .ph-back-link {
   display: inline-flex;
   align-items: center;
