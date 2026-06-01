@@ -132,8 +132,19 @@ export class PhLineChartComponent {
 }
 
 const chartTokens = {
+  leitblau: '#4691af',
+  pendant: '#003c50',
+  cyanAccent: '#00a0e1',
+  green: '#007d69',
+  brown: '#6e463c',
   textMuted: '#5b6b75',
   grid: '#dbe3e9'
 } as const;
 
-const chartColors = ['#003c50', '#4691af', '#00a0e1', '#007d69', '#6e463c'];
+const chartColors = [
+  chartTokens.leitblau,
+  chartTokens.cyanAccent,
+  chartTokens.pendant,
+  chartTokens.green,
+  chartTokens.brown
+];
