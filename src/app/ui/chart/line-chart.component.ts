@@ -96,7 +96,7 @@ export class PhLineChartComponent {
           maxTicksLimit: 8,
           autoSkipPadding: 24,
           padding: 4,
-          color: '#475569',
+          color: chartTokens.textMuted,
           font: { size: 11 }
         },
         grid: {
@@ -108,16 +108,16 @@ export class PhLineChartComponent {
         title: {
           display: Boolean(this.yLabel()),
           text: this.yLabel(),
-          color: '#475569',
+          color: chartTokens.textMuted,
           font: { size: 12, weight: 500 }
         },
         ticks: {
-          color: '#475569',
+          color: chartTokens.textMuted,
           font: { size: 11 },
           precision: 0
         },
         grid: {
-          color: '#e5e7eb'
+          color: chartTokens.grid
         }
       }
     }
@@ -131,4 +131,9 @@ export class PhLineChartComponent {
   }
 }
 
-const chartColors = ['#003c50', '#4691af', '#00a0e1', '#b46615', '#7a3978'];
+const chartTokens = {
+  textMuted: '#5b6b75',
+  grid: '#dbe3e9'
+} as const;
+
+const chartColors = ['#003c50', '#4691af', '#00a0e1', '#007d69', '#6e463c'];
