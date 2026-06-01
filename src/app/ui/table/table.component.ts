@@ -5,6 +5,7 @@ export interface PhTableColumn {
   field: string;
   header: string;
   align?: 'start' | 'end';
+  emphasis?: boolean;
 }
 
 type PhTableRow = object;
@@ -50,7 +51,12 @@ type PhTableRow = object;
           (keydown.space)="clickable() && handleSpace($event, row)"
         >
           @for (column of columns(); track column.field) {
-            <td [class.ph-cell-end]="column.align === 'end'">{{ cell(row, column.field) }}</td>
+            <td
+              [class.ph-cell-end]="column.align === 'end'"
+              [class.ph-cell-emphasis]="column.emphasis"
+            >
+              {{ cell(row, column.field) }}
+            </td>
           }
           @if (clickable()) {
             <td class="ph-table-action-column" aria-hidden="true">

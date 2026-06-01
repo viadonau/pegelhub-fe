@@ -9,7 +9,7 @@ import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component'
 import { SupplierOverviewRow } from './supplier.dto';
 
 const STATION_COLUMNS: PhTableColumn[] = [
-  { field: 'stationName', header: 'Station' },
+  { field: 'stationName', header: 'Station', emphasis: true },
   { field: 'stationWater', header: 'Water' },
   { field: 'stationNumber', header: 'Station number' }
 ];
