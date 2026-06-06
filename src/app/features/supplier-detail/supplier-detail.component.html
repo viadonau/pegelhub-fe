@@ -9,7 +9,11 @@
         <h1 class="ph-title">
           {{ supplier()?.stationName ?? stationNumber() }}
         </h1>
-        <ph-station-meta [items]="stationMetaItems()" />
+        <dl class="ph-station-meta" aria-label="Station metadata">
+          @for (item of stationMetaItems(); track item.label) {
+            <div ph-station-meta-item [item]="item"></div>
+          }
+        </dl>
       </div>
     </div>
 

@@ -7,19 +7,17 @@ export interface PhStationMetaItem {
 }
 
 @Component({
-  selector: 'ph-station-meta',
+  selector: 'div[ph-station-meta-item]',
+  host: {
+    class: 'ph-station-meta-item',
+    '[class.ph-station-meta-item-strong]': 'item().strong',
+  },
   template: `
-    <dl class="ph-station-meta" aria-label="Station metadata">
-      @for (item of items(); track item.label) {
-        <div class="ph-station-meta-item" [class.ph-station-meta-item-strong]="item.strong">
-          <dt>{{ item.label }}</dt>
-          <dd>{{ item.value }}</dd>
-        </div>
-      }
-    </dl>
+    <dt>{{ item().label }}</dt>
+    <dd>{{ item().value }}</dd>
   `,
   styleUrl: './station-meta.component.scss',
 })
-export class PhStationMetaComponent {
-  readonly items = input.required<readonly PhStationMetaItem[]>();
+export class PhStationMetaItemComponent {
+  readonly item = input.required<PhStationMetaItem>();
 }

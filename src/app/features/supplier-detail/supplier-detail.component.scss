@@ -21,6 +21,14 @@
   text-decoration: underline;
 }
 
+.ph-station-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
 .ph-section-sub {
   margin-top: -0.25rem;
   margin-bottom: 0.75rem;

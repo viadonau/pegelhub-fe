@@ -12,7 +12,7 @@ import { PhMessageComponent } from '../../ui/message/message.component';
 import { PhSelectFieldComponent } from '../../ui/select-field/select-field.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
 import { MEASUREMENT_RANGES } from './measurement-range';
-import { PhStationMetaComponent, PhStationMetaItem } from './station-meta.component';
+import { PhStationMetaItem, PhStationMetaItemComponent } from './station-meta.component';
 
 interface MeasurementTableRow {
   timestamp: string;
@@ -50,7 +50,7 @@ const compactTimeFormatter = new Intl.DateTimeFormat(undefined, {
     PhLoadingComponent,
     PhMessageComponent,
     PhSelectFieldComponent,
-    PhStationMetaComponent,
+    PhStationMetaItemComponent,
     PhTableComponent,
   ],
   templateUrl: './supplier-detail.component.html',
