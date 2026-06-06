@@ -9,68 +9,25 @@
         <h1 class="ph-title">
           {{ supplier()?.stationName ?? stationNumber() }}
         </h1>
-        <dl class="ph-station-meta">
-          <div class="ph-station-meta-item">
-            <dt>Water</dt>
-            <dd>{{ supplier()?.stationWater ?? 'Unknown' }}</dd>
-          </div>
-          <div class="ph-station-meta-item">
-            <dt>Station number</dt>
-            <dd>{{ stationNumber() }}</dd>
-          </div>
-          @if (activeUnit(); as unit) {
-            <div class="ph-station-meta-item">
-              <dt>Unit</dt>
-              <dd>{{ unit }}</dd>
-            </div>
-          }
-          @if (latestReading(); as reading) {
-            <div class="ph-station-meta-item ph-station-meta-item-strong">
-              <dt>Latest reading</dt>
-              <dd>{{ reading.value }}</dd>
-            </div>
-            <div class="ph-station-meta-item">
-              <dt>Last update</dt>
-              <dd>{{ reading.timestamp }}</dd>
-            </div>
-          }
-          @if (stationLocation(); as location) {
-            <div class="ph-station-meta-item">
-              <dt>Location ID</dt>
-              <dd>{{ location }}</dd>
-            </div>
-          }
-        </dl>
+        <ph-station-meta [items]="stationMetaItems()" />
       </div>
     </div>
 
     <div class="ph-actions">
-      <label class="ph-field">
-        Range
-        <select
-          class="ph-select"
-          [ngModel]="selectedRange()"
-          (ngModelChange)="setRange($event)"
-        >
-          @for (range of ranges; track range.value) {
-            <option [value]="range.value">{{ range.label }}</option>
-          }
-        </select>
-      </label>
+      <ph-select-field
+        label="Range"
+        [options]="ranges"
+        [value]="selectedRange()"
+        (valueChange)="setRange($event)"
+      />
 
       @if (fieldNames().length > 0) {
-        <label class="ph-field">
-          Parameter
-          <select
-            class="ph-select"
-            [ngModel]="activeFieldValue()"
-            (ngModelChange)="setField($event)"
-          >
-            @for (field of fieldNames(); track field) {
-              <option [value]="field">{{ humanizeField(field) }}</option>
-            }
-          </select>
-        </label>
+        <ph-select-field
+          label="Parameter"
+          [options]="fieldOptions()"
+          [value]="activeFieldValue()"
+          (valueChange)="setField($event)"
+        />
       }
 
       <ph-button
@@ -94,7 +51,9 @@
       <div class="ph-section-header">
         <div>
           <h2 class="ph-section-title">Measurement trend</h2>
-          <p class="ph-muted">{{ rows().length }} readings &middot; last {{ selectedRangeLabel() }}</p>
+          <p class="ph-muted">
+            {{ rows().length }} readings &middot; last {{ selectedRangeLabel() }}
+          </p>
         </div>
       </div>
 

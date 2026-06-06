@@ -4,7 +4,8 @@
       <p class="ph-kicker">Overview</p>
       <h1 class="ph-title">Station overview</h1>
       <p class="ph-muted">
-        Review supplier stations reporting into PegelHub and open a station to inspect its measurement history.
+        Review supplier stations reporting into PegelHub and open a station to inspect its
+        measurement history.
       </p>
       <dl class="ph-overview-meta" aria-label="Station summary">
         <div>
@@ -33,29 +34,23 @@
       <ph-message severity="error" [text]="error" />
     }
 
-    <section class="ph-page-section ph-overview-table-section" aria-labelledby="stations-table-title">
+    <section
+      class="ph-page-section ph-overview-table-section"
+      aria-labelledby="stations-table-title"
+    >
       <div class="ph-section-header">
         <div class="ph-section-heading">
           <h2 id="stations-table-title" class="ph-section-title">Supplier stations</h2>
           <p class="ph-muted">{{ filterSummary() }}</p>
         </div>
 
-        <div class="ph-search-field">
-          <i class="pi pi-search" aria-hidden="true"></i>
-          <input
-            type="search"
-            aria-label="Filter stations"
-            autocomplete="off"
-            placeholder="Filter stations"
-            [value]="stationFilter()"
-            (input)="updateStationFilter($event)"
-          />
-          @if (stationFilter()) {
-            <button type="button" aria-label="Clear station filter" (click)="clearStationFilter()">
-              <i class="pi pi-times" aria-hidden="true"></i>
-            </button>
-          }
-        </div>
+        <ph-search-field
+          label="Filter stations"
+          placeholder="Filter stations"
+          clearLabel="Clear station filter"
+          [value]="stationFilter()"
+          (valueChange)="setStationFilter($event)"
+        />
       </div>
 
       <ph-table

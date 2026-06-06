@@ -1,5 +1,4 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 
@@ -10,8 +9,10 @@ import { PhButtonComponent } from '../../ui/button/button.component';
 import { PhLineChartComponent, PhChartSeries } from '../../ui/chart/line-chart.component';
 import { PhLoadingComponent } from '../../ui/loading/loading.component';
 import { PhMessageComponent } from '../../ui/message/message.component';
+import { PhSelectFieldComponent } from '../../ui/select-field/select-field.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
 import { MEASUREMENT_RANGES } from './measurement-range';
+import { PhStationMetaComponent, PhStationMetaItem } from './station-meta.component';
 
 interface MeasurementTableRow {
   timestamp: string;
@@ -25,34 +26,35 @@ interface LatestReading {
 
 const MEASUREMENT_COLUMNS: PhTableColumn[] = [
   { field: 'timestamp', header: 'Timestamp' },
-  { field: 'value', header: 'Reading', align: 'end' }
+  { field: 'value', header: 'Reading', align: 'end' },
 ];
 
 const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
-  timeStyle: 'medium'
+  timeStyle: 'medium',
 });
 
 const compactTimeFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
   day: '2-digit',
   hour: '2-digit',
-  minute: '2-digit'
+  minute: '2-digit',
 });
 
 @Component({
   selector: 'app-supplier-detail',
   imports: [
-    FormsModule,
     RouterLink,
     PhButtonComponent,
     PhLineChartComponent,
     PhLoadingComponent,
     PhMessageComponent,
-    PhTableComponent
+    PhSelectFieldComponent,
+    PhStationMetaComponent,
+    PhTableComponent,
   ],
   templateUrl: './supplier-detail.component.html',
-  styleUrl: './supplier-detail.component.scss'
+  styleUrl: './supplier-detail.component.scss',
 })
 export class SupplierDetailComponent {
   readonly stationNumber = input('');
@@ -66,11 +68,14 @@ export class SupplierDetailComponent {
   protected readonly selectedField = signal<string | null>(null);
 
   protected readonly suppliers = this.suppliersApi.suppliersResource();
-  protected readonly measurements = this.measurementsApi.measurementsBySupplierResource(this.stationNumber, this.selectedRange);
+  protected readonly measurements = this.measurementsApi.measurementsBySupplierResource(
+    this.stationNumber,
+    this.selectedRange,
+  );
   protected readonly columns = MEASUREMENT_COLUMNS;
 
   protected readonly supplier = computed(() =>
-    this.suppliers.value().find((supplier) => supplier.stationNumber === this.stationNumber())
+    this.suppliers.value().find((supplier) => supplier.stationNumber === this.stationNumber()),
   );
 
   constructor() {
@@ -92,10 +97,6 @@ export class SupplierDetailComponent {
     return [...names].sort();
   });
 
-  protected humanizeField(field: string): string {
-    return humanizeFieldName(field);
-  }
-
   protected readonly activeField = computed(() => {
     const selectedField = this.selectedField();
     const fieldNames = this.fieldNames();
@@ -107,6 +108,12 @@ export class SupplierDetailComponent {
     return fieldNames[0] ?? null;
   });
   protected readonly activeFieldValue = computed(() => this.activeField() ?? '');
+  protected readonly fieldOptions = computed(() =>
+    this.fieldNames().map((field) => ({
+      label: humanizeFieldName(field),
+      value: field,
+    })),
+  );
   protected readonly chartYLabel = computed(() => {
     const field = this.activeField();
     if (!field) return undefined;
@@ -115,7 +122,7 @@ export class SupplierDetailComponent {
     return unit ? `${label} (${unit})` : label;
   });
   protected readonly selectedRangeLabel = computed(
-    () => MEASUREMENT_RANGES.find((range) => range.value === this.selectedRange())?.label ?? ''
+    () => MEASUREMENT_RANGES.find((range) => range.value === this.selectedRange())?.label ?? '',
   );
 
   protected readonly activeUnit = computed<string | null>(() => {
@@ -150,9 +157,9 @@ export class SupplierDetailComponent {
           .filter((measurement) => typeof measurement.fields?.[field] === 'number')
           .map((measurement) => ({
             label: formatTimestamp(measurement.timestamp, compactTimeFormatter),
-            value: measurement.fields[field]
-          }))
-      }
+            value: measurement.fields[field],
+          })),
+      },
     ];
   });
 
@@ -168,7 +175,7 @@ export class SupplierDetailComponent {
       .filter((measurement) => typeof measurement.fields?.[field] === 'number')
       .map((measurement) => ({
         timestamp: formatTimestamp(measurement.timestamp, dateTimeFormatter),
-        value: formatValueWithUnit(measurement.fields[field], unit)
+        value: formatValueWithUnit(measurement.fields[field], unit),
       }));
   });
   protected readonly latestReading = computed<LatestReading | null>(() => {
@@ -190,8 +197,34 @@ export class SupplierDetailComponent {
 
     return {
       timestamp: formatTimestamp(measurement.timestamp, compactTimeFormatter),
-      value: formatValueWithUnit(measurement.fields[field], unit)
+      value: formatValueWithUnit(measurement.fields[field], unit),
     };
+  });
+  protected readonly stationMetaItems = computed<PhStationMetaItem[]>(() => {
+    const items: PhStationMetaItem[] = [
+      { label: 'Water', value: this.supplier()?.stationWater ?? 'Unknown' },
+      { label: 'Station number', value: this.stationNumber() },
+    ];
+    const unit = this.activeUnit();
+    const reading = this.latestReading();
+    const location = this.stationLocation();
+
+    if (unit) {
+      items.push({ label: 'Unit', value: unit });
+    }
+
+    if (reading) {
+      items.push(
+        { label: 'Latest reading', value: reading.value, strong: true },
+        { label: 'Last update', value: reading.timestamp },
+      );
+    }
+
+    if (location) {
+      items.push({ label: 'Location ID', value: location });
+    }
+
+    return items;
   });
 
   protected readonly errorMessage = computed(() => {
@@ -230,7 +263,9 @@ export class SupplierDetailComponent {
   }
 
   private sortedMeasurements(): MeasurementDto[] {
-    return [...this.measurements.value()].sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+    return [...this.measurements.value()].sort((left, right) =>
+      left.timestamp.localeCompare(right.timestamp),
+    );
   }
 }
 
@@ -241,7 +276,7 @@ function formatValueWithUnit(value: number, unit: string | null): string {
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: 3
+    maximumFractionDigits: 3,
   }).format(value);
 }
 
@@ -266,7 +301,10 @@ function humanizeFieldName(field: string): string {
     return field;
   }
 
-  const spaced = field.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+  const spaced = field
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .trim();
 
   if (!spaced) {
     return field;

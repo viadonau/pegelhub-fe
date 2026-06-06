@@ -5,20 +5,27 @@ import { SupplierApiService } from '../../core/api/supplier-api.service';
 import { PhButtonComponent } from '../../ui/button/button.component';
 import { PhLoadingComponent } from '../../ui/loading/loading.component';
 import { PhMessageComponent } from '../../ui/message/message.component';
+import { PhSearchFieldComponent } from '../../ui/search-field/search-field.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
 import { SupplierOverviewRow } from './supplier.dto';
 
 const STATION_COLUMNS: PhTableColumn[] = [
   { field: 'stationName', header: 'Station', emphasis: true },
   { field: 'stationWater', header: 'Water' },
-  { field: 'stationNumber', header: 'Station number' }
+  { field: 'stationNumber', header: 'Station number' },
 ];
 
 @Component({
   selector: 'app-overview',
-  imports: [PhButtonComponent, PhLoadingComponent, PhMessageComponent, PhTableComponent],
+  imports: [
+    PhButtonComponent,
+    PhLoadingComponent,
+    PhMessageComponent,
+    PhSearchFieldComponent,
+    PhTableComponent,
+  ],
   templateUrl: './overview.component.html',
-  styleUrl: './overview.component.scss'
+  styleUrl: './overview.component.scss',
 })
 export class OverviewComponent {
   private readonly data = inject(SupplierApiService);
@@ -32,8 +39,8 @@ export class OverviewComponent {
       id: supplier.id,
       stationNumber: supplier.stationNumber,
       stationName: supplier.stationName,
-      stationWater: supplier.stationWater
-    }))
+      stationWater: supplier.stationWater,
+    })),
   );
   protected readonly filteredRows = computed(() => {
     const query = normalizeStationValue(this.stationFilter());
@@ -44,8 +51,8 @@ export class OverviewComponent {
 
     return this.rows().filter((row) =>
       [row.stationName, row.stationWater, row.stationNumber].some((value) =>
-        normalizeStationValue(value).includes(query)
-      )
+        normalizeStationValue(value).includes(query),
+      ),
     );
   });
   protected readonly stationCount = computed(() => this.rows().length);
@@ -72,7 +79,7 @@ export class OverviewComponent {
   protected readonly emptyMessage = computed(() =>
     this.stationFilter().trim()
       ? 'No stations match the current filter.'
-      : 'No stations to show. Your account might not have access to any yet.'
+      : 'No stations to show. Your account might not have access to any yet.',
   );
   protected readonly errorMessage = computed(() => {
     if (this.suppliers.status() !== 'error') {
@@ -98,12 +105,8 @@ export class OverviewComponent {
     void this.router.navigate(['/overview', stationNumber]);
   }
 
-  protected updateStationFilter(event: Event): void {
-    this.stationFilter.set((event.target as HTMLInputElement).value);
-  }
-
-  protected clearStationFilter(): void {
-    this.stationFilter.set('');
+  protected setStationFilter(value: string): void {
+    this.stationFilter.set(value);
   }
 }
 
