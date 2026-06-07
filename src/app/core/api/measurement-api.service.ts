@@ -21,14 +21,14 @@ export class MeasurementApiService {
         return {
           url: this.apiUrl.url(`/measurement/supplier/${range()}`),
           params: {
-            stationNumber: currentStationNumber
-          }
+            stationNumber: currentStationNumber,
+          },
         };
       },
       {
         defaultValue: [],
-        injector: this.injector
-      }
+        injector: this.injector,
+      },
     );
   }
 }

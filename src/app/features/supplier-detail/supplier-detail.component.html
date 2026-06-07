@@ -5,20 +5,9 @@
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
         Stations
       </a>
-      <div>
-        <h1 class="ph-title">
-          {{ supplier()?.stationName ?? stationNumber() }}
-        </h1>
-        <div class="ph-station-meta" role="group" aria-label="Station metadata">
-          @for (item of stationMetaItems(); track item.label) {
-            <ph-display-item
-              [label]="item.label"
-              [value]="item.value"
-              [strong]="item.strong ?? false"
-            />
-          }
-        </div>
-      </div>
+      <h1 class="ph-title">
+        <span class="ph-title-text">{{ supplier()?.stationName ?? stationNumber() }}</span>
+      </h1>
     </div>
 
     <div class="ph-actions">
@@ -29,17 +18,45 @@
         (valueChange)="setRange($event)"
       />
 
-      @if (fieldNames().length > 0) {
-        <ph-select-field
-          label="Parameter"
-          [options]="fieldOptions()"
-          [value]="activeFieldValue()"
-          (valueChange)="setField($event)"
-        />
+      @if (hasParameterChoice()) {
+        @if (useSegmentedParameters()) {
+          <div class="ph-parameter-control" role="group" aria-label="Parameter">
+            <span class="ph-parameter-control-label">Parameter</span>
+            <div class="ph-parameter-segments" role="radiogroup">
+              @for (segment of parameterSegments(); track segment.value) {
+                <button
+                  type="button"
+                  class="ph-parameter-segment"
+                  role="radio"
+                  [attr.aria-checked]="segment.value === activeFieldValue()"
+                  [class.is-active]="segment.value === activeFieldValue()"
+                  [attr.title]="
+                    segment.label && segment.unit
+                      ? segment.label + ' · ' + segment.unit
+                      : segment.label || null
+                  "
+                  (click)="setField(segment.value)"
+                >
+                  <span class="ph-parameter-segment-badge">{{ segment.badge }}</span>
+                  @if (segment.label) {
+                    <span class="ph-parameter-segment-label">{{ segment.label }}</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        } @else {
+          <ph-select-field
+            label="Parameter"
+            [options]="fieldOptions()"
+            [value]="activeFieldValue()"
+            (valueChange)="setField($event)"
+          />
+        }
       }
 
       <ph-button
-        label="Refresh data"
+        label="Refresh"
         icon="pi pi-refresh"
         variant="secondary"
         [loading]="measurements.isLoading() || suppliers.isLoading()"
@@ -55,16 +72,57 @@
       <ph-message severity="error" [text]="error" />
     }
 
-    <section class="ph-page-section">
-      <div class="ph-section-header">
-        <div>
-          <h2 class="ph-section-title">Measurement trend</h2>
-          <p class="ph-muted">
-            {{ rows().length }} readings &middot; last {{ selectedRangeLabel() }}
-          </p>
-        </div>
-      </div>
+    @if (latestReadingNumber(); as latestNumber) {
+      <section class="ph-current-reading" aria-label="Current reading">
+        @if (activeFieldLabel(); as fieldLabel) {
+          <p class="ph-current-reading-label">{{ fieldLabel }}</p>
+        }
+        <p class="ph-current-reading-value">
+          <span class="ph-current-reading-number">{{ latestNumber }}</span>
+          @if (activeUnit(); as unit) {
+            <span class="ph-current-reading-unit">{{ unit }}</span>
+          }
+        </p>
+        <p class="ph-current-reading-meta">
+          @if (latestReading(); as reading) {
+            <span>{{ reading.timestamp }}</span>
+          }
+          @if (delta(); as d) {
+            <span class="ph-delta" [attr.data-direction]="d.direction">
+              <i
+                class="pi"
+                [class.pi-arrow-up-right]="d.direction === 'rising'"
+                [class.pi-arrow-down-right]="d.direction === 'falling'"
+                [class.pi-minus]="d.direction === 'stable'"
+                aria-hidden="true"
+              ></i>
+              {{ d.label }}
+            </span>
+          }
+        </p>
+      </section>
+    }
 
+    <section class="ph-page-section" aria-label="Measurement trend">
+      @if (waterLabel() || riverKmLabel() || bankLabel() || pnpLabel() || ownerLabel()) {
+        <dl class="ph-station-meta" aria-label="Station details">
+          @if (waterLabel(); as water) {
+            <ph-display-item label="Gewässer" [value]="water" />
+          }
+          @if (riverKmLabel(); as km) {
+            <ph-display-item label="Strom-km" [value]="km" />
+          }
+          @if (bankLabel(); as bank) {
+            <ph-display-item label="Ufer" [value]="bank" />
+          }
+          @if (pnpLabel(); as pnp) {
+            <ph-display-item label="PNP" [value]="pnp" />
+          }
+          @if (ownerLabel(); as owner) {
+            <ph-display-item label="Besitzer" [value]="owner" />
+          }
+        </dl>
+      }
       <ph-line-chart
         [series]="chartSeries()"
         [yLabel]="chartYLabel()"
@@ -74,8 +132,7 @@
       />
     </section>
 
-    <section class="ph-page-section">
-      <h2 class="ph-section-title">Latest readings</h2>
+    <section class="ph-page-section" aria-label="Latest readings">
       <ph-table
         [columns]="columns"
         [rows]="rows()"

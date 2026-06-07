@@ -1,11 +1,25 @@
 import { Component, input, output } from '@angular/core';
 import { TableModule } from 'primeng/table';
 
+export type PhTableColumnKind = 'text' | 'numeric' | 'parameters';
+
+export interface PhTableInlineTag {
+  field: string;
+  hideWhen?: string;
+}
+
 export interface PhTableColumn {
   field: string;
   header: string;
   align?: 'start' | 'end';
   emphasis?: boolean;
+  kind?: PhTableColumnKind;
+  inlineTag?: PhTableInlineTag;
+}
+
+export interface PhTableParameter {
+  code: string;
+  label?: string;
 }
 
 type PhTableRow = object;
@@ -14,7 +28,7 @@ type PhTableRow = object;
   selector: 'ph-table',
   imports: [TableModule],
   host: {
-    class: 'block overflow-x-auto'
+    class: 'block overflow-x-auto',
   },
   template: `
     <p-table
@@ -30,7 +44,13 @@ type PhTableRow = object;
       <ng-template #header>
         <tr>
           @for (column of columns(); track column.field) {
-            <th scope="col" [class.ph-cell-end]="column.align === 'end'">{{ column.header }}</th>
+            <th
+              scope="col"
+              [class.ph-cell-end]="column.align === 'end' || column.kind === 'numeric'"
+              [class.ph-cell-numeric]="column.kind === 'numeric'"
+            >
+              {{ column.header }}
+            </th>
           }
           @if (clickable()) {
             <th class="ph-table-action-column" scope="col">
@@ -45,17 +65,51 @@ type PhTableRow = object;
           [class.ph-row-clickable]="clickable()"
           [attr.tabindex]="clickable() ? 0 : null"
           [attr.role]="clickable() ? 'button' : null"
-          [attr.aria-label]="clickable() ? (actionLabel() || 'Open') + ': ' + primarySummary(row) : null"
+          [attr.aria-label]="
+            clickable() ? (actionLabel() || 'Open') + ': ' + primarySummary(row) : null
+          "
           (click)="clickable() && rowAction.emit(row)"
           (keydown.enter)="clickable() && rowAction.emit(row)"
           (keydown.space)="clickable() && handleSpace($event, row)"
         >
           @for (column of columns(); track column.field) {
             <td
-              [class.ph-cell-end]="column.align === 'end'"
+              [class.ph-cell-end]="column.align === 'end' || column.kind === 'numeric'"
               [class.ph-cell-emphasis]="column.emphasis"
+              [class.ph-cell-numeric]="column.kind === 'numeric'"
+              [class.ph-cell-parameters]="column.kind === 'parameters'"
             >
-              {{ cell(row, column.field) }}
+              @switch (column.kind) {
+                @case ('parameters') {
+                  @if (parameters(row, column.field); as params) {
+                    @if (params.length > 0) {
+                      <span class="ph-parameter-row">
+                        @for (param of params; track param.code) {
+                          <span class="ph-parameter-badge" [attr.title]="param.label || null">
+                            {{ param.code }}
+                          </span>
+                        }
+                      </span>
+                    } @else {
+                      <span class="ph-cell-empty" aria-hidden="true">—</span>
+                    }
+                  } @else {
+                    <span class="ph-cell-empty" aria-hidden="true">—</span>
+                  }
+                }
+                @default {
+                  @if (column.emphasis && column.inlineTag; as tag) {
+                    <span class="ph-cell-emphasis-row">
+                      <span class="ph-cell-emphasis-text">{{ cell(row, column.field) }}</span>
+                      @if (inlineTagValue(row, column.inlineTag); as tagValue) {
+                        <span class="ph-inline-tag">{{ tagValue }}</span>
+                      }
+                    </span>
+                  } @else {
+                    {{ cell(row, column.field) }}
+                  }
+                }
+              }
             </td>
           }
           @if (clickable()) {
@@ -68,17 +122,14 @@ type PhTableRow = object;
 
       <ng-template #emptymessage>
         <tr>
-          <td
-            class="ph-table-empty"
-            [attr.colspan]="columns().length + (clickable() ? 1 : 0)"
-          >
+          <td class="ph-table-empty" [attr.colspan]="columns().length + (clickable() ? 1 : 0)">
             {{ emptyMessage() }}
           </td>
         </tr>
       </ng-template>
     </p-table>
   `,
-  styleUrl: './table.component.scss'
+  styleUrl: './table.component.scss',
 })
 export class PhTableComponent {
   readonly rows = input<PhTableRow[]>([]);
@@ -96,6 +147,25 @@ export class PhTableComponent {
   protected cell(row: PhTableRow, field: string): string {
     const value = (row as Record<string, unknown>)[field];
     return value === undefined || value === null || value === '' ? '-' : String(value);
+  }
+
+  protected parameters(row: PhTableRow, field: string): PhTableParameter[] | null {
+    const value = (row as Record<string, unknown>)[field];
+    if (!Array.isArray(value)) return null;
+    return value.filter(
+      (entry): entry is PhTableParameter =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        typeof (entry as { code?: unknown }).code === 'string',
+    );
+  }
+
+  protected inlineTagValue(row: PhTableRow, tag: PhTableInlineTag): string | null {
+    const raw = (row as Record<string, unknown>)[tag.field];
+    if (raw === undefined || raw === null || raw === '') return null;
+    const value = String(raw);
+    if (tag.hideWhen !== undefined && value === tag.hideWhen) return null;
+    return value;
   }
 
   protected primarySummary(row: PhTableRow): string {

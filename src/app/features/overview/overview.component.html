@@ -1,25 +1,17 @@
 <section class="ph-page ph-overview-page">
   <header class="ph-page-header">
     <div class="ph-page-heading">
-      <p class="ph-kicker">Overview</p>
-      <h1 class="ph-title">Station overview</h1>
-      <p class="ph-muted">
-        Review supplier stations reporting into PegelHub and open a station to inspect its
-        measurement history.
+      <h1 class="ph-title">Stations</h1>
+      <p class="ph-overview-summary">
+        <span>{{ stationCountLabel() }}</span>
+        <span class="ph-overview-summary-status" [attr.data-status]="overviewStatusLabel()">
+          {{ overviewStatusLabel() }}
+        </span>
+        <span class="ph-overview-summary-sync">Last sync {{ lastSyncLabel() }}</span>
       </p>
-      <dl class="ph-overview-meta" aria-label="Station summary">
-        <div>
-          <dt>Stations</dt>
-          <dd>{{ stationCountLabel() }}</dd>
-        </div>
-        <div>
-          <dt>Status</dt>
-          <dd>{{ overviewStatusLabel() }}</dd>
-        </div>
-      </dl>
     </div>
     <ph-button
-      label="Refresh stations"
+      label="Refresh"
       icon="pi pi-refresh"
       variant="secondary"
       [loading]="suppliers.isLoading()"
@@ -34,16 +26,8 @@
       <ph-message severity="error" [text]="error" />
     }
 
-    <section
-      class="ph-page-section ph-overview-table-section"
-      aria-labelledby="stations-table-title"
-    >
-      <div class="ph-section-header">
-        <div class="ph-section-heading">
-          <h2 id="stations-table-title" class="ph-section-title">Supplier stations</h2>
-          <p class="ph-muted">{{ filterSummary() }}</p>
-        </div>
-
+    <section class="ph-page-section ph-overview-table-section" aria-label="Supplier stations">
+      <div class="ph-section-header ph-overview-filter-bar">
         <ph-search-field
           label="Filter stations"
           placeholder="Filter stations"
@@ -51,6 +35,9 @@
           [value]="stationFilter()"
           (valueChange)="setStationFilter($event)"
         />
+        @if (filterSummary(); as summary) {
+          <p class="ph-muted ph-overview-filter-summary">{{ summary }}</p>
+        }
       </div>
 
       <ph-table

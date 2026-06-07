@@ -1,7 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { SupplierApiService } from '../../core/api/supplier-api.service';
+import { describeParameter } from '../../core/station/parameter-legend';
 import { PhButtonComponent } from '../../ui/button/button.component';
 import { PhLoadingComponent } from '../../ui/loading/loading.component';
 import { PhMessageComponent } from '../../ui/message/message.component';
@@ -10,10 +11,25 @@ import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component'
 import { SupplierOverviewRow } from './supplier.dto';
 
 const STATION_COLUMNS: PhTableColumn[] = [
-  { field: 'stationName', header: 'Station', emphasis: true },
+  {
+    field: 'stationName',
+    header: 'Station',
+    emphasis: true,
+    inlineTag: { field: 'owner', hideWhen: 'via' },
+  },
   { field: 'stationWater', header: 'Water' },
+  { field: 'riverKm', header: 'km', kind: 'numeric' },
+  { field: 'parameters', header: 'Parameters', kind: 'parameters' },
   { field: 'stationNumber', header: 'Station number' },
 ];
+
+const kmFormatter = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 2,
+});
+
+const relativeTimeFormatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+const absoluteTimeFormatter = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
 @Component({
   selector: 'app-overview',
@@ -34,12 +50,35 @@ export class OverviewComponent {
   protected readonly suppliers = this.data.suppliersResource();
   protected readonly columns = STATION_COLUMNS;
   protected readonly stationFilter = signal('');
+  protected readonly lastSync = signal<Date | null>(null);
+  private readonly nowTick = signal(Date.now());
+
+  constructor() {
+    effect(() => {
+      if (this.suppliers.status() === 'resolved' && !this.suppliers.isLoading()) {
+        this.lastSync.set(new Date());
+      }
+    });
+
+    const destroyRef = inject(DestroyRef);
+    const interval = setInterval(() => this.nowTick.set(Date.now()), 30_000);
+    destroyRef.onDestroy(() => clearInterval(interval));
+  }
+
   protected readonly rows = computed<SupplierOverviewRow[]>(() =>
     this.suppliers.value().map((supplier) => ({
       id: supplier.id,
       stationNumber: supplier.stationNumber,
       stationName: supplier.stationName,
       stationWater: supplier.stationWater,
+      riverKm: supplier.riverKm !== undefined ? kmFormatter.format(supplier.riverKm) : undefined,
+      parameters: supplier.parameters?.map((code) => ({
+        code,
+        label: describeParameter(code)
+          ? `${describeParameter(code)!.label} · ${describeParameter(code)!.unit}`
+          : undefined,
+      })),
+      owner: supplier.owner,
     })),
   );
   protected readonly filteredRows = computed(() => {
@@ -69,12 +108,33 @@ export class OverviewComponent {
 
     return this.errorMessage() ? 'Needs attention' : 'Ready';
   });
+  protected readonly lastSyncLabel = computed(() => {
+    const synced = this.lastSync();
+    if (!synced) {
+      return this.suppliers.isLoading() ? 'syncing…' : 'not yet';
+    }
+
+    const ageMs = this.nowTick() - synced.getTime();
+    const ageSec = Math.max(0, Math.round(ageMs / 1000));
+
+    if (ageSec < 60) {
+      return 'just now';
+    }
+
+    const ageMin = Math.round(ageSec / 60);
+
+    if (ageMin < 60) {
+      return relativeTimeFormatter.format(-ageMin, 'minute');
+    }
+
+    return absoluteTimeFormatter.format(synced);
+  });
   protected readonly filterSummary = computed(() => {
     if (this.stationFilter().trim()) {
       return `${this.filteredStationCount()} of ${this.stationCountLabel()} shown`;
     }
 
-    return 'Station metadata from the Core API, sorted by the service response.';
+    return '';
   });
   protected readonly emptyMessage = computed(() =>
     this.stationFilter().trim()

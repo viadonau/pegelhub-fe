@@ -5,13 +5,14 @@ import { Title } from '@angular/platform-browser';
 import { MeasurementDto } from '../../core/api/measurement.dto';
 import { MeasurementApiService } from '../../core/api/measurement-api.service';
 import { SupplierApiService } from '../../core/api/supplier-api.service';
+import { BANK_LABEL, describeParameter } from '../../core/station/parameter-legend';
 import { PhButtonComponent } from '../../ui/button/button.component';
 import { PhLineChartComponent, PhChartSeries } from '../../ui/chart/line-chart.component';
+import { PhDisplayItemComponent } from '../../ui/display-item/display-item.component';
 import { PhLoadingComponent } from '../../ui/loading/loading.component';
 import { PhMessageComponent } from '../../ui/message/message.component';
 import { PhSelectFieldComponent } from '../../ui/select-field/select-field.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
-import { PhDisplayItemComponent } from '../../ui/display-item/display-item.component';
 import { MEASUREMENT_RANGES } from './measurement-range';
 
 interface MeasurementTableRow {
@@ -19,15 +20,50 @@ interface MeasurementTableRow {
   value: string;
 }
 
-interface StationMetaItem {
-  label: string;
-  value: string;
-  strong?: boolean;
-}
-
 interface LatestReading {
   timestamp: string;
   value: string;
+}
+
+interface ReadingDelta {
+  label: string;
+  direction: 'rising' | 'falling' | 'stable';
+}
+
+interface ParameterOption {
+  value: string;
+  /** Operator-vocabulary code if recognised (W / WT / Q), otherwise the humanised field name. */
+  badge: string;
+  label: string;
+  unit?: string;
+}
+
+const KM_FORMATTER = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 2,
+});
+
+const PNP_FORMATTER = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const OWNER_LABEL: Record<string, string> = {
+  via: 'viadonau',
+};
+
+/** Best-effort mapping from measurement field keys to the operator parameter codes. */
+const PARAMETER_CODE_PATTERNS: Array<{ code: 'W' | 'WT' | 'Q'; pattern: RegExp }> = [
+  { code: 'WT', pattern: /(wassertemperatur|water[_\s-]?temp|temperature)/i },
+  { code: 'Q', pattern: /(abfluss|discharge|durchfluss)/i },
+  { code: 'W', pattern: /(wasserstand|water[_\s-]?level|gauge[_\s-]?level|level)/i },
+];
+
+function detectParameterCode(field: string): 'W' | 'WT' | 'Q' | null {
+  for (const entry of PARAMETER_CODE_PATTERNS) {
+    if (entry.pattern.test(field)) return entry.code;
+  }
+  return null;
 }
 
 const MEASUREMENT_COLUMNS: PhTableColumn[] = [
@@ -52,10 +88,10 @@ const compactTimeFormatter = new Intl.DateTimeFormat(undefined, {
   imports: [
     RouterLink,
     PhButtonComponent,
+    PhDisplayItemComponent,
     PhLineChartComponent,
     PhLoadingComponent,
     PhMessageComponent,
-    PhDisplayItemComponent,
     PhSelectFieldComponent,
     PhTableComponent,
   ],
@@ -120,6 +156,25 @@ export class SupplierDetailComponent {
       value: field,
     })),
   );
+  protected readonly parameterSegments = computed<ParameterOption[]>(() =>
+    this.fieldNames().map((field) => {
+      const code = detectParameterCode(field);
+      const meta = code ? describeParameter(code) : undefined;
+      const humanized = humanizeFieldName(field);
+      return {
+        value: field,
+        badge: code ?? humanized,
+        // Avoid duplicating the badge as the segment label when no parameter
+        // code was detected; the badge already carries the humanised field name.
+        label: meta?.label ?? '',
+        unit: meta?.unit,
+      };
+    }),
+  );
+  protected readonly useSegmentedParameters = computed(
+    () => this.parameterSegments().length >= 2 && this.parameterSegments().length <= 3,
+  );
+  protected readonly hasParameterChoice = computed(() => this.parameterSegments().length >= 2);
   protected readonly chartYLabel = computed(() => {
     const field = this.activeField();
     if (!field) return undefined;
@@ -127,24 +182,12 @@ export class SupplierDetailComponent {
     const label = humanizeFieldName(field);
     return unit ? `${label} (${unit})` : label;
   });
-  protected readonly selectedRangeLabel = computed(
-    () => MEASUREMENT_RANGES.find((range) => range.value === this.selectedRange())?.label ?? '',
-  );
 
   protected readonly activeUnit = computed<string | null>(() => {
     const measurements = this.measurements.value();
     for (const measurement of measurements) {
       const unit = measurement.infos?.['unit'];
       if (typeof unit === 'string' && unit.length > 0) return unit;
-    }
-    return null;
-  });
-
-  protected readonly stationLocation = computed<string | null>(() => {
-    const measurements = this.measurements.value();
-    for (const measurement of measurements) {
-      const location = measurement.infos?.['location'];
-      if (typeof location === 'string' && location.length > 0) return location;
     }
     return null;
   });
@@ -206,31 +249,73 @@ export class SupplierDetailComponent {
       value: formatValueWithUnit(measurement.fields[field], unit),
     };
   });
-  protected readonly stationMetaItems = computed<StationMetaItem[]>(() => {
-    const items: StationMetaItem[] = [
-      { label: 'Water', value: this.supplier()?.stationWater ?? 'Unknown' },
-      { label: 'Station number', value: this.stationNumber() },
-    ];
+  protected readonly activeFieldLabel = computed(() => {
+    const field = this.activeField();
+    if (!field) return '';
+    const code = detectParameterCode(field);
+    if (code) {
+      return describeParameter(code)?.label ?? humanizeFieldName(field);
+    }
+    // For generic / undetected field names like "value", suppress the kicker
+    // entirely; the chart and number are self-explanatory.
+    if (/^value$/i.test(field)) return '';
+    return humanizeFieldName(field);
+  });
+  protected readonly latestReadingNumber = computed<string | null>(() => {
+    const field = this.activeField();
+    if (!field) return null;
+
+    const measurement = this.sortedMeasurements()
+      .slice()
+      .reverse()
+      .find((measurement) => typeof measurement.fields?.[field] === 'number');
+
+    return measurement ? formatNumber(measurement.fields[field] as number) : null;
+  });
+  protected readonly delta = computed<ReadingDelta | null>(() => {
+    const field = this.activeField();
+    if (!field) return null;
+
+    const numericPair = this.sortedMeasurements()
+      .filter((measurement) => typeof measurement.fields?.[field] === 'number')
+      .slice(-2);
+
+    if (numericPair.length < 2) return null;
+
+    const [prev, latest] = numericPair;
+    const diff = (latest.fields[field] as number) - (prev.fields[field] as number);
     const unit = this.activeUnit();
-    const reading = this.latestReading();
-    const location = this.stationLocation();
+    const sign = diff > 0 ? '+' : diff < 0 ? '−' : '±';
+    const formatted = formatNumber(Math.abs(diff));
+    const label = `${sign}${formatted}${unit ? ' ' + unit : ''} vs prior`;
+    const direction: ReadingDelta['direction'] =
+      diff > 0 ? 'rising' : diff < 0 ? 'falling' : 'stable';
 
-    if (unit) {
-      items.push({ label: 'Unit', value: unit });
-    }
+    return { label, direction };
+  });
+  protected readonly waterLabel = computed<string | null>(
+    () => this.supplier()?.stationWater ?? null,
+  );
 
-    if (reading) {
-      items.push(
-        { label: 'Latest reading', value: reading.value, strong: true },
-        { label: 'Last update', value: reading.timestamp },
-      );
-    }
+  protected readonly riverKmLabel = computed<string | null>(() => {
+    const km = this.supplier()?.riverKm;
+    return km === undefined || km === null ? null : `km ${KM_FORMATTER.format(km)}`;
+  });
 
-    if (location) {
-      items.push({ label: 'Location ID', value: location });
-    }
+  protected readonly bankLabel = computed<string | null>(() => {
+    const bank = this.supplier()?.bank;
+    return bank ? (BANK_LABEL[bank] ?? null) : null;
+  });
 
-    return items;
+  protected readonly pnpLabel = computed<string | null>(() => {
+    const pnp = this.supplier()?.pnp;
+    return pnp === undefined || pnp === null ? null : `${PNP_FORMATTER.format(pnp)} m ü.A.`;
+  });
+
+  protected readonly ownerLabel = computed<string | null>(() => {
+    const owner = this.supplier()?.owner;
+    if (!owner) return null;
+    return OWNER_LABEL[owner] ?? owner;
   });
 
   protected readonly errorMessage = computed(() => {
