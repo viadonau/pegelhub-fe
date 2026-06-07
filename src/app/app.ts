@@ -25,7 +25,7 @@ export class App {
   protected readonly showShell = computed(() => {
     this.navigationEnd();
 
-    return this.auth.authenticated() && !this.router.url.startsWith('/login');
+    return this.auth.authenticated();
   });
 
   protected logout(): void {

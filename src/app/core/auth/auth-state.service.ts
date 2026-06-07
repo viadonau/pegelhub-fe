@@ -26,7 +26,7 @@ export class AuthStateService {
 
   logout(): Promise<void> {
     return this.keycloak.logout({
-      redirectUri: new URL('/login', window.location.origin).toString()
+      redirectUri: window.location.origin + '/'
     });
   }
 }
