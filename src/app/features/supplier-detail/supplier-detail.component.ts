@@ -11,12 +11,18 @@ import { PhLoadingComponent } from '../../ui/loading/loading.component';
 import { PhMessageComponent } from '../../ui/message/message.component';
 import { PhSelectFieldComponent } from '../../ui/select-field/select-field.component';
 import { PhTableColumn, PhTableComponent } from '../../ui/table/table.component';
+import { PhDisplayItemComponent } from '../../ui/display-item/display-item.component';
 import { MEASUREMENT_RANGES } from './measurement-range';
-import { PhStationMetaItem, PhStationMetaItemComponent } from './station-meta.component';
 
 interface MeasurementTableRow {
   timestamp: string;
   value: string;
+}
+
+interface StationMetaItem {
+  label: string;
+  value: string;
+  strong?: boolean;
 }
 
 interface LatestReading {
@@ -49,8 +55,8 @@ const compactTimeFormatter = new Intl.DateTimeFormat(undefined, {
     PhLineChartComponent,
     PhLoadingComponent,
     PhMessageComponent,
+    PhDisplayItemComponent,
     PhSelectFieldComponent,
-    PhStationMetaItemComponent,
     PhTableComponent,
   ],
   templateUrl: './supplier-detail.component.html',
@@ -200,8 +206,8 @@ export class SupplierDetailComponent {
       value: formatValueWithUnit(measurement.fields[field], unit),
     };
   });
-  protected readonly stationMetaItems = computed<PhStationMetaItem[]>(() => {
-    const items: PhStationMetaItem[] = [
+  protected readonly stationMetaItems = computed<StationMetaItem[]>(() => {
+    const items: StationMetaItem[] = [
       { label: 'Water', value: this.supplier()?.stationWater ?? 'Unknown' },
       { label: 'Station number', value: this.stationNumber() },
     ];

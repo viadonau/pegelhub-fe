@@ -5,7 +5,7 @@
   gap: 0.125rem;
 }
 
-dt {
+.ph-display-item-label {
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -13,7 +13,7 @@ dt {
   color: var(--p-surface-500);
 }
 
-dd {
+.ph-display-item-value {
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 500;
@@ -22,7 +22,7 @@ dd {
   overflow-wrap: break-word;
 }
 
-:host(.ph-station-meta-item-strong) dd {
+:host(.ph-display-item-strong) .ph-display-item-value {
   color: var(--p-primary-color);
   font-weight: 700;
 }
