@@ -22,6 +22,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'overview/:timeSeriesId',
+        title: 'Messreihe · PegelHub',
+        loadComponent: () =>
+          import('./features/time-series-detail/time-series-detail.component').then(
+            (module) => module.TimeSeriesDetailComponent,
+          ),
+      },
+      {
         path: 'forbidden',
         component: ErrorPageComponent,
         title: 'Zugriff nicht möglich · PegelHub',
