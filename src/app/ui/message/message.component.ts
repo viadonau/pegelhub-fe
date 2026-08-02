@@ -7,13 +7,13 @@ export type PhMessageSeverity = 'info' | 'success' | 'warn' | 'error';
   selector: 'ph-message',
   imports: [MessageModule],
   host: {
-    class: 'block'
+    class: 'block',
   },
   template: `
     <p-message [severity]="severity()" [closable]="false">
       <span>{{ text() }}</span>
     </p-message>
-  `
+  `,
 })
 export class PhMessageComponent {
   readonly severity = input<PhMessageSeverity>('info');
