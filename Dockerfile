@@ -19,3 +19,6 @@ COPY docker/entrypoint.sh /docker-entrypoint.d/40-pegelhub-runtime.sh
 RUN chmod +x /docker-entrypoint.d/40-pegelhub-runtime.sh
 
 EXPOSE 80
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=12 \
+  CMD wget -qO- http://127.0.0.1/ >/dev/null || exit 1
