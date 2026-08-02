@@ -7,8 +7,7 @@ cat > /usr/share/nginx/html/assets/config.json <<EOF
   "keycloak": {
     "url": "${PH_KEYCLOAK_URL}",
     "realm": "${PH_KEYCLOAK_REALM}",
-    "clientId": "${PH_KEYCLOAK_CLIENT_ID}",
-    "apiClientId": "${PH_KEYCLOAK_API_CLIENT_ID}"
+    "clientId": "${PH_KEYCLOAK_CLIENT_ID}"
   }
 }
 EOF

@@ -3,7 +3,6 @@
   "keycloak": {
     "url": "http://pegelhub-keycloak.test:8082",
     "realm": "pegelhub",
-    "clientId": "pegelhub-frontend",
-    "apiClientId": "pegelhub-core-api"
+    "clientId": "pegelhub-frontend"
   }
 }

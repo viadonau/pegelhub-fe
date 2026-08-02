@@ -53,7 +53,9 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "@fontsource-variable/source-sans-3/index.css",
+              "@fontsource-variable/source-serif-4/index.css",
+              "src/styles.css"
             ]
           },
           "configurations": {
@@ -91,6 +93,15 @@
             }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "pegelhub-frontend-next:build:development",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "watch": false
+          }
         }
       }
     }

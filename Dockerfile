@@ -12,7 +12,6 @@ ENV PH_API_BASE_URL=/api/v1 \
     PH_KEYCLOAK_URL=http://pegelhub-keycloak.test:8082 \
     PH_KEYCLOAK_REALM=pegelhub \
     PH_KEYCLOAK_CLIENT_ID=pegelhub-frontend \
-    PH_KEYCLOAK_API_CLIENT_ID=pegelhub-core-api \
     NGINX_API_UPSTREAM=http://core-app:8080
 
 COPY --from=build /app/dist/pegelhub-frontend-next/browser /usr/share/nginx/html
