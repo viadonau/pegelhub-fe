@@ -7,11 +7,6 @@ export class AuthStateService {
   private readonly keycloak = inject(Keycloak);
   private readonly keycloakEvent = inject(KEYCLOAK_EVENT_SIGNAL);
 
-  readonly authenticated = computed(() => {
-    this.keycloakEvent();
-    return this.keycloak.authenticated;
-  });
-
   readonly userName = computed(() => {
     this.keycloakEvent();
     const token = this.keycloak.tokenParsed;
@@ -20,13 +15,13 @@ export class AuthStateService {
 
   login(returnUrl = '/'): Promise<void> {
     return this.keycloak.login({
-      redirectUri: new URL(returnUrl, window.location.origin).toString()
+      redirectUri: new URL(returnUrl, window.location.origin).toString(),
     });
   }
 
   logout(): Promise<void> {
     return this.keycloak.logout({
-      redirectUri: new URL('/login', window.location.origin).toString()
+      redirectUri: `${window.location.origin}/`,
     });
   }
 }
