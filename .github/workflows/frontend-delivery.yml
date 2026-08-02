@@ -1,0 +1,108 @@
+name: Frontend Delivery
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  FRONTEND_IMAGE_REPOSITORY: ghcr.io/viadonau/pegelhub-frontend
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Validate production image
+        run: npm run image:validate -- "pegelhub-frontend:ci-${GITHUB_SHA}"
+
+  publish:
+    name: Publish Image
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.digest_reference.outputs.reference }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          cache-image: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE_REPOSITORY }}:sha-${{ github.sha }}
+
+      - name: Resolve immutable digest reference
+        id: digest_reference
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "reference=${FRONTEND_IMAGE_REPOSITORY}@${IMAGE_DIGEST}" >> "${GITHUB_OUTPUT}"
+
+  request-staging-deployment:
+    name: Request Staging Deployment
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+
+    steps:
+      - name: Dispatch backend deployment
+        env:
+          FRONTEND_IMAGE: ${{ needs.publish.outputs.image }}
+          GH_TOKEN: ${{ secrets.BACKEND_DEPLOY_TOKEN }}
+        run: |
+          gh api --method POST repos/viadonau/pegelhub/dispatches \
+            -f event_type=frontend-staging \
+            -f "client_payload[image]=${FRONTEND_IMAGE}" \
+            -f "client_payload[source_sha]=${GITHUB_SHA}"

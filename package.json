@@ -11,6 +11,7 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "image:validate": "scripts/validate-production-image.sh",
     "check": "prettier --check . && tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && ng test --watch=false",
     "smoke:live": "node scripts/live-stack-smoke.mjs",
     "watch": "ng build --watch --configuration development"
