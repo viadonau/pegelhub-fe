@@ -1,41 +1,116 @@
 # PegelHub Frontend
 
-Angular 21 frontend for the PegelHub monitoring workflow.
+<img src="public/brand/pegelhub-logo.png" alt="PegelHub" width="220">
 
-## Current Scope
+[![Frontend Delivery](https://github.com/viadonau/pegelhub-fe/actions/workflows/frontend-delivery.yml/badge.svg)](https://github.com/viadonau/pegelhub-fe/actions/workflows/frontend-delivery.yml)
 
-- load runtime configuration before Angular bootstrap;
-- authenticate with Keycloak using `login-required` and PKCE S256;
-- attach bearer tokens only to the configured Core API;
-- list time series with measuring-point and station context in AG Grid;
-- show the latest value, metadata, and bucketed measurement history for one time series;
-- optionally display RNW and HSW chart references for water-level series;
-- support system-aware light and dark themes without a reload flash.
+PegelHub Frontend is the authenticated monitoring interface for viadonau operators. This Angular 21
+application presents station, measuring-point, time-series, and measurement data supplied by
+[PegelHub Core](https://github.com/viadonau/pegelhub); it does not own or persist that data.
 
-The frontend reads stations, station owners, measuring points, time series, raw latest measurements, and chart buckets from `/api/v1`. Metadata administration is intentionally outside this branch.
+The implemented product scope is intentionally limited to monitoring: a filterable time-series
+overview and a single-series detail view with metadata, the most recent reading returned from a
+trailing-365-day query, and bucketed chart history. Metadata administration and other operator
+configuration workflows are not implemented. The user interface is German; source code and
+technical documentation are English.
 
-## Local Development
+## Quick Start
 
-Start the backend stack from `pegelhub/core`, then run:
+### Prerequisites
+
+- Node.js 24, matching CI and the Docker build stage;
+- npm 11.12.1, declared by the repository's `packageManager` field;
+- Bash and standard POSIX command-line tools for the documented repository and Core helper scripts;
+- Docker for the
+  [PegelHub Core local stack](https://github.com/viadonau/pegelhub#start-locally) and container image
+  validation;
+- `curl` for the Core startup helper and container image validation.
+
+The shell examples assume macOS, Linux, or a comparable POSIX environment such as WSL. The checked-in
+`package-lock.json` is the dependency source of truth; use `npm ci` for a clean install that fails
+rather than changing it.
+
+### Run the Stack
+
+The browser must be able to resolve the same Keycloak hostname that Core uses as the token issuer.
+With administrative privileges, add this entry to `/etc/hosts` on macOS/Linux or to the equivalent
+hosts file for your operating system:
+
+```text
+127.0.0.1 pegelhub-keycloak.test
+```
+
+From the [Core repository](https://github.com/viadonau/pegelhub), start Core and its local
+dependencies:
 
 ```bash
-npm install
+test -f core/.env || cp core/.env.example core/.env
+scripts/local-stack.sh compose-up
+```
+
+The imported disposable realm includes a browser user authorized for this monitoring UI. Obtain its
+local-only sign-in details from the Core repository's
+[local Keycloak guide](https://github.com/viadonau/pegelhub/blob/main/core/docs/keycloak-local-dev.md#local-realm-contents).
+Custom browser users need the Core `metadata:read` and `measurement:read` client roles. The Core
+repository owns identities and realm-import behavior; do not put credentials in frontend
+configuration or duplicate them here.
+
+Then, from this repository:
+
+```bash
+npm ci
 npm start
 ```
 
-The development server runs at [http://localhost:4200/overview](http://localhost:4200/overview) and proxies `/api` to `http://localhost:8080`.
+Open [http://localhost:4200/overview](http://localhost:4200/overview). Keycloak redirects the
+browser to sign in before Angular starts the monitoring UI. A successful setup reaches the
+**Messreihen** page after sign-in and loads its data through the frontend's `/api/v1` path.
 
-To target another local Core instance:
+The development server binds to `localhost:4200`. It serves the committed runtime config and
+proxies `/api` to `http://localhost:8080`. To use another Core address:
 
 ```bash
 PEGELHUB_API_PROXY_TARGET=http://localhost:8090 npm start
 ```
 
-Keycloak validates browser origins exactly. The imported local realm defaults to `http://localhost:4200`; a different host or port must also be configured on the `pegelhub-frontend` client.
+`npm run start:4201` is available when port 4200 is occupied, but it requires a matching Keycloak
+browser origin. Core's default local realm is configured for `http://localhost:4200`; see
+[Authentication](#authentication) before changing the port.
 
-## Runtime Configuration
+## Product Surface
 
-The frontend reads `/assets/config.json`:
+| Route                     | Behavior                                                                                       |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| `/`                       | Redirects to `/overview`.                                                                      |
+| `/overview`               | Lists time series with context, filters, and each series' latest trailing-365-day reading.     |
+| `/overview/:timeSeriesId` | Shows one series, metadata, its latest trailing-365-day reading, and selectable chart history. |
+| `/forbidden`              | Displays the authorization error reached after a Core API `403` response.                      |
+
+Water-level detail charts can optionally show RNW and HSW reference levels when the API supplies
+them. The application also provides persistent light/dark theme selection and responsive grid
+columns. See [PRODUCT.md](PRODUCT.md) for the product and design decisions behind this scope.
+
+## Authentication
+
+Angular loads the runtime configuration before bootstrap and initializes the public Keycloak SPA
+client with `login-required` and PKCE S256. No Keycloak client secret is used by this frontend.
+Bearer tokens are attached only to requests whose URL is under the configured `apiBaseUrl`.
+
+Core remains responsible for authorization. An API `401` starts a new login while preserving the
+current route; an API `403` navigates to `/forbidden`. The Keycloak integration attempts token
+refresh for active sessions and invokes login after 30 minutes without tracked user activity.
+
+Keycloak compares browser origins exactly. If the frontend hostname, scheme, or port changes,
+update the `pegelhub-frontend` client's redirect URIs and web origins. On the disposable local
+stack, `PEGELHUB_FRONTEND_URL` supplies that origin during the first realm import; changing it does
+not rewrite an already imported realm.
+
+## Configuration
+
+### Browser Runtime Config
+
+The application fetches `/assets/config.json` with `cache: no-store` before Angular bootstrap. All
+four values are required and must be non-empty strings:
 
 ```json
 {
@@ -48,51 +123,187 @@ The frontend reads `/assets/config.json`:
 }
 ```
 
-The Docker entrypoint writes the same shape from `PH_API_BASE_URL`,
-`PH_KEYCLOAK_URL`, `PH_KEYCLOAK_REALM`, and `PH_KEYCLOAK_CLIENT_ID`. It
-configures the Nginx `/api/` proxy from `NGINX_API_UPSTREAM` and re-resolves
-that service through Docker DNS so a preserved frontend follows Core container
-recreation during backend releases.
+For `npm start`, these values come from [public/assets/config.json](public/assets/config.json), which
+Angular serves as a static asset. `PEGELHUB_API_PROXY_TARGET` changes only the development proxy's
+server-side target; it does not change `apiBaseUrl` in the browser.
 
-## Delivery
+For a production build, `public/` is copied into the Angular bundle. The deployment container then
+replaces `assets/config.json` at **container startup**, not image build time:
 
-Pull requests and pushes to `main` run `npm ci`, `npm run check`,
-`npm run build`, and a production Docker image runtime validation. A push to
-`main` then publishes the multi-platform image
-`ghcr.io/viadonau/pegelhub-frontend:sha-<full-commit-sha>` and requests staging
-deployment of the published manifest as
-`ghcr.io/viadonau/pegelhub-frontend@sha256:<64-lowercase-hex>`. The commit tag
-remains useful for discovery, but activation and rollback state are pinned to
-the immutable digest.
+| Container variable      | Default                              | Browser-facing purpose                      |
+| ----------------------- | ------------------------------------ | ------------------------------------------- |
+| `PH_API_BASE_URL`       | `/api/v1`                            | Core API base used by API clients and auth. |
+| `PH_KEYCLOAK_URL`       | `http://pegelhub-keycloak.test:8082` | Keycloak base URL reachable by the browser. |
+| `PH_KEYCLOAK_REALM`     | `pegelhub`                           | Keycloak realm.                             |
+| `PH_KEYCLOAK_CLIENT_ID` | `pegelhub-frontend`                  | Public browser client ID.                   |
 
-After publication, the frontend workflow sends the digest to the backend
-repository's `Deploy Frontend` workflow. The backend workflow owns the staging
-Environment, SSH connection, Compose topology, deployment lock, smoke checks,
-release state, and rollback behavior. The deployment result is reported in the
-backend repository.
+This split lets one immutable image move between environments without rebuilding Angular. These
+settings are public application configuration, not a place for passwords, tokens, or client
+secrets. An unavailable file, invalid JSON, or a missing or blank required string prevents bootstrap
+and produces a dedicated startup error page. The loader does not otherwise validate non-empty
+values. A malformed Keycloak URL can fail during application configuration; other incorrect API or
+Keycloak values fail when the corresponding service is used.
 
-Configure `BACKEND_DEPLOY_TOKEN` as a frontend repository or organization
-secret. Use a narrowly scoped GitHub App installation token or fine-grained
-token that can create repository dispatch events for `viadonau/pegelhub`.
-Merge the backend deployment PR before enabling or merging this workflow.
+### API Proxies
+
+Local development and the deployment container use different proxy implementations:
+
+- `proxy.conf.cjs` sends `/api` requests from `npm start` to
+  `PEGELHUB_API_PROXY_TARGET` (default `http://localhost:8080`).
+- The container entrypoint writes an Nginx rule that forwards `/api/` unchanged to
+  `NGINX_API_UPSTREAM` (default `http://core-app:8080`). The upstream is internal to the container
+  network and is never sent to the browser.
+
+Keep `PH_API_BASE_URL=/api/v1` for the normal same-origin deployment. Nginx re-resolves its upstream
+through Docker DNS every 10 seconds so a running frontend follows Core container recreation.
+
+## Architecture
+
+The application uses standalone Angular components, signals, `httpResource`, zoneless change
+detection, and lazy-loaded feature routes.
+
+```text
+src/main.ts                              theme initialization, runtime config, bootstrap
+src/app/core/                            config, auth, HTTP/API clients, theme, formatting
+src/app/features/time-series-overview/   monitoring overview and AG Grid adapter
+src/app/features/time-series-detail/     series metadata, readings, chart, preferences
+src/app/ui/                              reusable presentation components
+public/assets/config.json                local/browser runtime configuration
+public/brand/                            bundled product and partner marks
+docker/entrypoint.sh                     runtime config and Nginx generation
+scripts/                                 image validation and live-stack smoke checks
+.github/workflows/frontend-delivery.yml  verification, image publication, staging request
+```
+
+Feature `model/` directories contain presentation projections and pure formatting logic, not a
+second backend domain model. Shared UI stays domain-neutral; feature adapters own domain-specific
+columns and behavior. More detail lives in [PRODUCT.md](PRODUCT.md).
 
 ## Commands
 
+| Command                  | Purpose and prerequisites                                                       |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `npm start`              | Start the dev server on port 4200 with the Core proxy.                          |
+| `npm run start:4201`     | Start on port 4201; Keycloak must allow that origin.                            |
+| `npm run watch`          | Rebuild the development bundle when source files change.                        |
+| `npm test`               | Run the Vitest unit suite once.                                                 |
+| `npm run typecheck`      | Type-check application and test TypeScript projects.                            |
+| `npm run format:check`   | Check repository formatting with Prettier.                                      |
+| `npm run format`         | Rewrite supported files with Prettier.                                          |
+| `npm run check`          | Run formatting, both TypeScript checks, and the unit suite, as CI does.         |
+| `npm run build`          | Create the production bundle under `dist/pegelhub-frontend-next/browser/`.      |
+| `npm run image:validate` | Build and exercise the deployment image; requires running Docker and `curl`.    |
+| `npm run smoke:live`     | Check a running local frontend, Keycloak, Core proxy, auth gate, and API reads. |
+
+`npm run smoke:live` defaults to `http://localhost:4200` and the Core repository's disposable local
+client-credentials service client. That smoke-test client is separate from the public
+`pegelhub-frontend` browser client described under [Authentication](#authentication). Its optional
+inputs are `FRONTEND_BASE_URL`, `LOCAL_OPERATOR_CLIENT_ID`, `LOCAL_OPERATOR_CLIENT_SECRET`, and
+`LIVE_STACK_SMOKE_TIMEOUT_MS`. The Core repository's
+[local Keycloak guide](https://github.com/viadonau/pegelhub/blob/main/core/docs/keycloak-local-dev.md#local-realm-contents)
+owns its provisioning. Supply sensitive overrides only through the environment; do not commit them.
+
+Before opening a pull request, run at least:
+
 ```bash
-npm start
-npm run format
-npm run format:check
-npm run typecheck
-npm test -- --watch=false
-npm run build
 npm run check
-npm run image:validate
-npm run smoke:live
+npm run build
 ```
 
-`npm run check` runs formatting, TypeScript checks, and tests. Run `npm run build` separately for the production bundle. `npm run smoke:live` expects the backend stack and frontend dev server to be running and verifies the configured Keycloak and Core API path through the frontend proxy.
-`npm run image:validate` builds the production Dockerfile, waits for its health
-check, and verifies the SPA fallback, generated runtime config, and Nginx API
-upstream without contacting staging.
+Run `npm run image:validate` as well for changes to the Dockerfile, entrypoint, runtime config, or
+Nginx behavior. Run `npm run smoke:live` when a Core stack and frontend server are already
+available.
 
-See [PRODUCT.md](PRODUCT.md) for current product, design, and frontend architecture decisions.
+## Deployment Container
+
+Deployment operators should use the Core repository's
+[staging frontend runbook](https://github.com/viadonau/pegelhub/blob/main/deploy/staging/README.md#deploy-and-roll-back-the-frontend).
+This section describes the frontend image contract that runbook consumes.
+
+The multi-stage [Dockerfile](Dockerfile) builds with Node 24 and serves the static bundle from
+Nginx 1.27 on container port 80. At startup, [docker/entrypoint.sh](docker/entrypoint.sh):
+
+1. writes browser runtime config from the `PH_*` variables;
+2. writes the Nginx API proxy from `NGINX_API_UPSTREAM`;
+3. enables SPA fallback to `index.html` for routes such as `/overview/:timeSeriesId`.
+
+The image health check requests `/` with a five-second interval, three-second timeout, ten-second
+start period, and twelve retries. A healthy container therefore confirms that Nginx answers at the
+application root. Frontend deployment smoke checks also exercise the public app and proxied Core
+system-time route; they do not perform a Keycloak login or discovery check.
+
+## Delivery and Staging
+
+The [Frontend Delivery workflow](.github/workflows/frontend-delivery.yml) owns this repository's
+delivery path:
+
+- every pull request, and every push to `main`, runs `npm ci`, `npm run check`, `npm run build`, and
+  container-image validation;
+- after a successful `main` verification, it publishes Linux AMD64 and ARM64 images to
+  `ghcr.io/viadonau/pegelhub-frontend` with the tag `sha-<full-commit-sha>`;
+- it resolves the pushed image to an immutable digest and requests the Core repository's
+  `Deploy Frontend` workflow with that digest.
+
+The Core repository owns the `staging` GitHub Environment, SSH and Compose topology, deployment
+lock, frontend and Core-proxy smoke checks, release state, and the attempted restoration of the
+previous digest after a failed activation. See its
+[staging frontend runbook](https://github.com/viadonau/pegelhub/blob/main/deploy/staging/README.md#deploy-and-roll-back-the-frontend)
+for the deployment procedure.
+
+Repository maintainers must configure `BACKEND_DEPLOY_TOKEN` with permission to create repository
+dispatch events for `viadonau/pegelhub`. Do not place that token in runtime config, workflow prose,
+or committed files. Deployment status and rollback state are reported by the Core repository.
+
+## Troubleshooting
+
+### Keycloak does not open or tokens have the wrong issuer
+
+Confirm that `pegelhub-keycloak.test` resolves to `127.0.0.1` on the host and that Keycloak is
+available on port 8082. Do not substitute `localhost` for this hostname: Core validates the token's
+issuer exactly.
+
+### Keycloak reports an invalid redirect URI or blocked origin
+
+Compare the running URL with the exact client origin described under
+[Authentication](#authentication). For local development, return to port 4200 or deliberately
+update the disposable realm using the linked Keycloak guide.
+
+### The application navigates to `/forbidden`
+
+Confirm that the browser user has both `metadata:read` and `measurement:read` on the
+`pegelhub-core-api` client. After changing role assignments, sign out and back in so the browser
+receives fresh token claims.
+Use the [local Keycloak guide](https://github.com/viadonau/pegelhub/blob/main/core/docs/keycloak-local-dev.md)
+for the role and client model.
+
+### API requests fail locally
+
+Confirm Core is healthy on port 8080 and check any `PEGELHUB_API_PROXY_TARGET` override. The browser
+should still request `/api/v1/...` from the frontend origin. With the full stack running,
+`npm run smoke:live` identifies whether the failure is the frontend route, runtime config, Keycloak,
+proxy, authentication gate, metadata relationships, or measurement reads.
+
+### The application shows a startup configuration error
+
+Request `/assets/config.json` from the same frontend origin and verify it is valid JSON containing
+all four required strings. For a container, inspect the `PH_*` values supplied by the deployment;
+for the dev server, inspect [public/assets/config.json](public/assets/config.json).
+
+### A container is healthy but data does not load
+
+The image health check covers Nginx only. Verify that `NGINX_API_UPSTREAM` is reachable from the
+frontend container network and that the browser-facing Keycloak URL is reachable from the user's
+machine.
+
+## Further Documentation
+
+- [PRODUCT.md](PRODUCT.md): current product boundary, design direction, and frontend architecture.
+- [Operator station metadata note](docs/operator-station-metadata.md): source-data observations for
+  possible future metadata work; it does not describe an implemented administration feature.
+- [Brand assets](public/brand/README.md): bundled asset purpose, provenance, and maintenance rules.
+- [PegelHub Core](https://github.com/viadonau/pegelhub/blob/main/core/README.md): backend runtime and
+  API documentation entry point.
+- [Local Keycloak development](https://github.com/viadonau/pegelhub/blob/main/core/docs/keycloak-local-dev.md):
+  issuer, browser client, roles, and realm-import behavior.
+- [Staging deployment](https://github.com/viadonau/pegelhub/blob/main/deploy/staging/README.md#deploy-and-roll-back-the-frontend):
+  frontend activation, smoke checks, and rollback ownership.
